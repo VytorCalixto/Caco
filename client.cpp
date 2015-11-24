@@ -26,6 +26,8 @@ int main(){
             //TODO
         }else if(command == "get"){
             //TODO
+        }else{
+            cout << "Comando inexistente." << endl;
         }
     }
     return 0;

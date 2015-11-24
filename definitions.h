@@ -7,6 +7,9 @@
 
 using namespace std;
 
+#define MAXSIZE
+#define MINSIZE
+
 #define DEVICE "lo"
 #define NACK 0
 #define ACK 1
