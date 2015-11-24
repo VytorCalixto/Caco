@@ -1,7 +1,10 @@
 #include "definitions.h"
 #include "dirFunctions.h"
+#include "ConexaoRawSocket.c"
 
 int main(){
+
+    int socket = ConexaoRawSocket(DEVICE);
     
     while(true){
         string command, path;

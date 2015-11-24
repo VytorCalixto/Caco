@@ -3,7 +3,6 @@ CC=g++
 
 OBJ=Protocol.o
 
-
 %.o: %.cpp
 	$(CC) $(CFLAGS) $^ -c -o $@
 cacoclient: client.cpp $(OBJ)
