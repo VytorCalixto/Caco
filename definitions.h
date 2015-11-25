@@ -23,12 +23,22 @@ using namespace std;
 #define ERRO 14
 #define FIM 15
 
-typedef struct {
-    int begin   : 8,
+typedef struct{
+	int begin   : 8,
         size    : 6,
         sequence: 6,
         type    : 4,
         parity  : 8;
+}i_Control;
+
+typedef struct{
+	char begin,size,seqType,parity;
+}c_Control;
+
+typedef union {
+	c_Control c_ctrl;
+    i_Control i_ctrl;
 }Message;
+
 
 #endif
