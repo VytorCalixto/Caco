@@ -7,8 +7,10 @@
 
 using namespace std;
 
-#define MAXSIZE
-#define MINSIZE
+#define MAXSIZE 64
+#define MINSIZE 60
+
+#define BEGIN 0x7E
 
 #define DEVICE "lo"
 #define NACK 0
