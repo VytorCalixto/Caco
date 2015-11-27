@@ -1,43 +1,49 @@
-#include <sstream>
+#include <stdexcept>
 #include "definitions.h"
 #include "dirFunctions.h"
 #include "ConexaoRawSocket.c"
 
 void printCommandsList();
-vector<string> getArgs();
 
 int main(){
-    int sockt = ConexaoRawSocket(DEVICE);
-    vector<string> args;
+    int pos, sockt = ConexaoRawSocket(DEVICE);
+    string line, command, args;
     printCommandsList();
     while(true){
         cout << endl << "Entre com o comando:" << endl;
-        args = getArgs();
-        if(args[0] == "quit"){
-            break;
+        getline(cin,line);
+        pos = line.find_first_of(" ");
+        if(pos == string::npos){
+            pos = line.size();
         }
-        if(args[0] == "cd"){
-            cd(args[1]);
-        }else if(args[0] == "ls"){
-            try{
-                cout << ls(args);
-            }catch(char const* strException){
-                cerr<<"Error: "<< strException << endl;
+        command = line.substr(0,pos);
+        try{
+            if(command == "quit"){
+                break;
             }
-        }else if(args[0] == "cdr"){
-            //TODO
-        }else if(args[0] == "lsr"){
-            //TODO
-        }else if(args[0] == "put"){
-            //TODO
-        }else if(args[0] == "get"){
+            if(command == "cd"){
+                args = line.substr(pos+1, line.size());
+                cd(args);
+            }else if(command == "ls"){
+                cout << ls(line);
+            }else if(command == "cdr"){
+                //TODO
+            }else if(command == "lsr"){
+                //TODO
+            }else if(command == "put"){
+                //TODO
+            }else if(command == "get"){
 
-        }else if(args[0] == "help"){
-            printCommandsList();
-        }else{
-            cout << "Comando inexistente." << endl;
-            printCommandsList();
-
+            }else if(command == "help"){
+                printCommandsList();
+            }else{
+                cout << "Comando inexistente." << endl;
+                printCommandsList();
+            }
+        }catch(char const* strException){
+            cerr<<"Error: "<< strException << endl;
+        }catch(out_of_range e){
+            cerr<<"Error: Esse comando requer argumentos."<<endl;
         }
     }
     return 0;
@@ -53,17 +59,4 @@ void printCommandsList(){
     cout << "get - Pegar arquivo do diretório remoto"<< endl;
     cout << "help - Lista de comandos"<< endl;
     cout << "quit - Sair"<< endl;
-}
-
-vector<string> getArgs(){
-    string line, arg;
-    getline(cin,line);
-    stringstream ss(line);
-    vector<string> args;
-    while(getline(ss, arg, ' ')){
-        if(!arg.empty()){
-            args.push_back(arg);
-        }
-    }
-    return args;
 }

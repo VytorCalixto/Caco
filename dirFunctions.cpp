@@ -9,12 +9,6 @@
 
 using namespace std;
 
-string concatStringVector(vector<string> vs){
-    ostringstream oss;
-    copy(vs.begin(), vs.end(), ostream_iterator<string>(oss, " "));
-    return oss.str();
-}
-
 void cd(string path){
     if(chdir(path.c_str()) != 0){
         cout << "Error: could not change directory." << endl;
@@ -22,9 +16,9 @@ void cd(string path){
     }
 }
 
-string ls(vector<string> args){
-    string output, command = concatStringVector(args);
-    FILE *lsOut = popen(command.c_str(), "r");
+string ls(string args){
+    string output;
+    FILE *lsOut = popen(args.c_str(), "r");
     if(!lsOut){
         throw "Couldn't execute ls";
     }
