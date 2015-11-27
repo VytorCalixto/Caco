@@ -3,9 +3,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <vector>
-#include <numeric> //accumulate
 #include <stdio.h> //popen
-#include <iterator>
 
 using namespace std;
 
@@ -28,15 +26,4 @@ string ls(string args){
     }
     pclose(lsOut);
     return output;
-    //TODO: #1
-    // struct dirent *entry;
-    // DIR *dir = opendir(path.c_str());
-    // if(dir != NULL){
-    //     while((entry=readdir(dir)) != NULL){
-    //        cout << entry->d_name << endl;
-    //     }
-    //     closedir(dir);
-    // }else{
-    //     cout<<"Error: could not open directory."<<endl;
-    // }
 }

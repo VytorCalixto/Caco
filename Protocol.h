@@ -6,13 +6,16 @@ class Protocol{
 
 private:
     Message message;
-    vector<unsigned char> data;
+    vector<BYTE> data;
     int timeout;
 public:
 
     Message getMessage();
     void setMessage(Message message);
-    int readMessage(int socket);
+    vector<BYTE> getData();
+    void setData(vector<BYTE> data);
+    string getDataAsString();
+    int readMessage(int sockt);
 
     Protocol();
 };

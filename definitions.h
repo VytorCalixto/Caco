@@ -7,10 +7,10 @@
 
 using namespace std;
 
-#define MAXSIZE 64
-#define MINSIZE 60
+#define MAXSIZE 64 //number maximum of bytes in data field
+#define MINSIZE 60 //number minimum of bytes in data field
 
-#define BEGIN 0x7E
+#define BEGIN 0x7E //begin delimiter value
 
 #define DEVICE "lo"
 #define NACK 0
@@ -20,10 +20,13 @@ using namespace std;
 #define PUT 5
 #define GET 6
 #define OK 8
-#define TAM 9
-#define TELA 10
-#define ERRO 14
-#define FIM 15
+#define SIZE 9
+#define OUTPUT 10
+#define DATA 13
+#define ERROR 14
+#define ENDTX 15
+
+#define BYTE unsigned char
 
 typedef struct{
 	int begin   : 8,
