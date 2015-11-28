@@ -5,17 +5,16 @@
 class Protocol{
 
 private:
-    Message message;
-    vector<BYTE> data;
+    vector<Message> messages;
     int timeout;
 public:
 
-    Message getMessage();
-    void setMessage(Message message);
+    vector<Message> getMessages();
+    void setMessages(vector<Message> messages);
     vector<BYTE> getData();
-    void setData(vector<BYTE> data);
+    void setData(vector<BYTE> data, int type);
     string getDataAsString();
-    int readMessage(int sockt);
+    int recvMessage(int sockt);
 
     Protocol();
 };

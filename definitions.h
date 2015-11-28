@@ -7,12 +7,15 @@
 
 using namespace std;
 
-#define MAXSIZE 64 //number maximum of bytes in data field
-#define MINSIZE 60 //number minimum of bytes in data field
+//Maximum and minimum of bytes in data field
+#define MAXSIZE 63
+#define MINSIZE 60
 
-#define BEGIN 0x7E //begin delimiter value
-
+//Delimiter indicating beginning of a message
+#define BEGIN 0x7E 
+//Socket device
 #define DEVICE "lo"
+//Message types
 #define NACK 0
 #define ACK 1
 #define CD 3
@@ -26,6 +29,17 @@ using namespace std;
 #define ERROR 14
 #define ENDTX 15
 
+//Values of data for ERROR messages
+#define DIR_ERR '0'
+#define PERM_ERR '1'
+#define SPACE_ERR '2'
+
+//recvMessage errors
+#define NOISE -1
+#define SEQ_MISS -2
+#define INCONSISTENT -3
+
+//Data types
 #define BYTE unsigned char
 
 typedef struct{
@@ -37,12 +51,17 @@ typedef struct{
 }i_Control;
 
 typedef struct{
-	char begin,size,seqType,parity;
+	char begin,sizeSeq,seqType,parity;
 }c_Control;
 
 typedef union {
 	c_Control c_ctrl;
     i_Control i_ctrl;
+}Header;
+
+typedef struct{
+	Header header;
+	vector<BYTE> data;
 }Message;
 
 

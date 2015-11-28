@@ -7,7 +7,7 @@ OBJ=Protocol.o
 	$(CC) $(CFLAGS) $^ -c -o $@
 cacoclient: client.cpp $(OBJ)
 	$(CC) $(CFLAGS) $^ -o $@
-cacoserver: $(OBJ) server.cpp
+cacoserver: server.cpp $(OBJ)
 	$(CC) $(CFLAGS) $^ -o $@
 clean:
 	rm -f *.o caco*
