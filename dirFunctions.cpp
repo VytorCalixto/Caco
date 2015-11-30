@@ -1,8 +1,9 @@
 #include <iostream>
 #include <errno.h>
 #include <unistd.h>
-#include <dirent.h>
 #include <string.h>
+#include <vector>
+#include <stdio.h> //popen
 
 using namespace std;
 
@@ -13,16 +14,16 @@ void cd(string path){
     }
 }
 
-void ls(string path){
-    //TODO: #1
-    struct dirent *entry;
-    DIR *dir = opendir(path.c_str());
-    if(dir != NULL){
-        while((entry=readdir(dir)) != NULL){
-           cout << entry->d_name << endl;
-        }
-        closedir(dir);
-    }else{
-        cout<<"Error: could not open directory."<<endl;
+string ls(string args){
+    string output;
+    FILE *lsOut = popen(args.c_str(), "r");
+    if(!lsOut){
+        throw "Couldn't execute ls";
     }
+    char buffer[1024];
+    while(fgets(buffer, sizeof(buffer), lsOut)!=NULL){
+        output += buffer;
+    }
+    pclose(lsOut);
+    return output;
 }

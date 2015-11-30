@@ -7,6 +7,6 @@ using namespace std;
 
 void cd(string path);
 
-void ls(string path);
+string ls(string path);
 
 #endif
