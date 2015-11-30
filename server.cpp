@@ -16,7 +16,7 @@ int main(){
             }else if(status == CD){
                 cd(protocol.getDataAsString());
             }else if(status == LS){
-                cout << "Recebeu LS";
+                cout << "Recebeu LS\n";
                 string output = ls(protocol.getDataAsString());
                 //TODO: send output back
             }else if(status == PUT){

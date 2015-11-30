@@ -35,7 +35,7 @@ int main(){
                 msg.header.i_ctrl.type = LS;
                 msg.data = vector<BYTE>(line.begin(), line.end());
                 protocol.addMessage(msg);
-                protocol.send(sockt, WAIT_STOP);
+                protocol.sendMessages(sockt, WAIT_STOP);
                 // TODO: imprimir resposta
             }else if(command == "put"){
                 //TODO
@@ -51,6 +51,24 @@ int main(){
             cerr<<"Error: "<< strException << endl;
         }catch(out_of_range e){
             cerr<<"Error: Esse comando requer argumentos."<<endl;
+        }
+
+        int status = protocol.recvMessage(sockt);
+        if(status > 0){
+            if(status == ENDTX){
+                protocol = Protocol();
+                //TODO: send ACK
+            }else if(status == CD){
+                cd(protocol.getDataAsString());
+            }else if(status == LS){
+                cout << "Recebeu LS\n";
+                string output = ls(protocol.getDataAsString());
+                //TODO: send output back
+            }else if(status == PUT){
+                //TODO
+            }else if(status == GET){
+                //TODO
+            }
         }
     }
     return 0;

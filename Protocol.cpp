@@ -10,9 +10,10 @@ void Protocol::setMessages(vector<Message> messages){
     this->messages = messages;
 }
 
-bool Protocol::send(int socket, int window) {
+bool Protocol::sendMessages(int socket, int window) {
     for(int i=0; i < messages.size(); ++i) {
         string data = messages[i].getSendData();
+        send(socket, data.c_str(), messages[i].header.i_ctrl.size, 0);
     }
     return true;
 }
@@ -70,6 +71,7 @@ void Protocol::setData(vector<BYTE> data, int type){
 int Protocol::recvMessage(int sockt){
     BYTE dataRec[MAXSIZE+4];
     recv(sockt, dataRec, MAXSIZE, 0);
+    cout << dataRec[0] << dataRec[1] << dataRec[2] << "|\t";
     Message msg;
     msg.header.c_ctrl.begin = dataRec[0];
     if(msg.header.i_ctrl.begin != BEGIN){

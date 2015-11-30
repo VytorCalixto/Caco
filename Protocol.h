@@ -9,7 +9,7 @@ private:
     vector<Message> messages;
     int timeout;
 public:
-    bool send(int socket, int window);
+    bool sendMessages(int socket, int window);
     vector<Message> getMessages();
     void setMessages(vector<Message> messages);
     vector<BYTE> getData();

@@ -19,7 +19,22 @@ bool Message::checkParity() {
 string Message::getSendData() {
     calcParity();
     string s(data.begin(), data.end());
-    string d = header.c_ctrl.begin + header.c_ctrl.sizeSeq + header.c_ctrl.seqType + s.c_str() + header.c_ctrl.parity;
+    int size = data.size();
+    //TODO: quebrar em partes aqui? ou tem que quebrar no protocolo?
+    header.i_ctrl.size = size;
+    header.i_ctrl.sequence = 1;
+    char *fill;
+    if(size < 63) {
+        fill = (char*) malloc((63-size)*sizeof(char));
+        memset(fill, 0, (63-size)*sizeof(char));
+    }
+    string d;
+    d += header.c_ctrl.begin;
+    d += header.c_ctrl.sizeSeq;
+    d += header.c_ctrl.seqType;
+    d += s.c_str();
+    d += fill;
+    d += header.c_ctrl.parity;
     return d;
 }
 
