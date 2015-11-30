@@ -11,6 +11,9 @@ public:
 
     Message getMessage();
     void setMessage(Message message);
+    bool send(int socket);
+    char calcParity();
+    bool checkParity();
 
     Protocol();
 };
