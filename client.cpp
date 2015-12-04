@@ -32,9 +32,7 @@ int main(){
                 //TODO
             }else if(command == "lsr"){
                 Message msg = Message();
-                msg.header.i_ctrl.type = LS;
-                msg.data = vector<BYTE>(line.begin(), line.end());
-                protocol.addMessage(msg);
+                protocol.setData(vector<BYTE>(line.begin(), line.end()), LS);
                 protocol.sendMessages(sockt, WAIT_STOP);
                 // TODO: imprimir resposta
             }else if(command == "put"){

@@ -35,9 +35,9 @@ using namespace std;
 #define SLIDING 3
 
 //Values of data for ERROR messages
-#define DIR_ERR '0'
-#define PERM_ERR '1'
-#define SPACE_ERR '2'
+#define DIR_ERR '0' //Nonexistent Directory
+#define PERM_ERR '1' //Permission denied
+#define SPACE_ERR '2' //File size bigger than disk free space size
 
 //recvMessage errors
 #define NOISE -1

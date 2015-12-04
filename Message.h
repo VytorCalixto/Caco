@@ -10,6 +10,7 @@ public:
     BYTE calcParity();
     bool checkParity();
     string getSendData();
+    vector<int> getBitFieldsAsInt();
 
     Message();
 };

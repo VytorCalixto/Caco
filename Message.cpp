@@ -1,4 +1,5 @@
 #include "Message.h"
+#include <bitset>
 #include "definitions.h"
 
 BYTE Message::calcParity() {
@@ -14,6 +15,22 @@ BYTE Message::calcParity() {
 bool Message::checkParity() {
     BYTE parity = this->calcParity();
     return (parity == this->header.c_ctrl.parity);
+}
+
+vector<int> Message::getBitFieldsAsInt(){
+    vector<int> bits;
+    // bitset<8> begin(messages[i].header.i_ctrl.begin);
+    // bitset<6> size(messages[i].header.i_ctrl.size);
+    // bitset<6> sequence(messages[i].header.i_ctrl.sequence);
+    // bitset<4> type(messages[i].header.i_ctrl.type);
+    // bitset<8> parity(messages[i].header.i_ctrl.parity);
+    bits.push_back((int)bitset<8>(header.i_ctrl.begin).to_ulong());
+    bits.push_back((int)bitset<6>(header.i_ctrl.size).to_ulong());
+    bits.push_back((int)bitset<6>(header.i_ctrl.sequence).to_ulong());
+    bits.push_back((int)bitset<4>(header.i_ctrl.type).to_ulong());
+    bits.push_back((int)bitset<8>(header.i_ctrl.parity).to_ulong());
+    return bits;
+
 }
 
 string Message::getSendData() {
@@ -39,5 +56,5 @@ string Message::getSendData() {
 }
 
 Message::Message() {
-    this->header.c_ctrl.begin = BEGIN;
+    this->header.i_ctrl.begin = BEGIN;
 }
