@@ -29,7 +29,9 @@ int main(){
             }else if(command == "ls"){
                 cout << ls(line);
             }else if(command == "cdr"){
-                //TODO
+                args = line.substr(pos+1, line.size());
+                protocol.setData(vector<BYTE>(args.begin(), args.end()), CD);
+                protocol.sendMessages(sockt, WAIT_STOP);
             }else if(command == "lsr"){
                 Message msg = Message();
                 line.replace(line.find("lsr"), string("lsr").length(), "ls");
@@ -52,24 +54,23 @@ int main(){
             cerr<<"Error: Esse comando requer argumentos."<<endl;
         }
 
-        int status = protocol.recvMessage(sockt);
-        cout << "Status: " << status << endl;
-        if(status > 0){
-            if(status == ENDTX){
-                protocol = Protocol();
-                //TODO: send ACK
-            }else if(status == CD){
-                cd(protocol.getDataAsString());
-            }else if(status == LS){
-                cout << "Recebeu LS\n";
-                string output = ls(protocol.getDataAsString());
-                //TODO: send output back
-            }else if(status == PUT){
-                //TODO
-            }else if(status == GET){
-                //TODO
-            }
-        }
+        // int status = protocol.recvMessage(sockt);
+        // cout << "Status: " << status << endl;
+        // if(status > 0){
+        //     if(status == ENDTX){
+        //         protocol = Protocol();
+        //         //TODO: send ACK
+        //     }else if(status == CD){
+        //         cd(protocol.getDataAsString());
+        //     }else if(status == LS){
+        //         string output = ls(protocol.getDataAsString());
+        //         //TODO: send output back
+        //     }else if(status == PUT){
+        //         //TODO
+        //     }else if(status == GET){
+        //         //TODO
+        //     }
+        // }
     }
     return 0;
 }

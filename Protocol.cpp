@@ -12,14 +12,14 @@ void Protocol::setMessages(vector<Message> messages){
 
 bool Protocol::sendMessages(int socket, int window) {
     for(int i=0; i < messages.size(); ++i) {
-        cout << "message: " << messages[i] << endl;
+        // cout << "message: " << messages[i] << endl;
         vector<BYTE> message = messages[i].getMessage();
-        char* msg = reinterpret_cast<char*> (message.data());
-        cout << "char* msg: ";
-        for(int j=0;j<message.size();++j){
-            cout << bitset<8>(msg[j]);
-        }
-        cout <<endl;
+        unsigned char* msg = reinterpret_cast<unsigned char*> (message.data());
+        // cout << "char* msg: ";
+        // for(int j=0;j<message.size();++j){
+        //     cout << bitset<8>(msg[j]);
+        // }
+        // cout <<endl;
         send(socket, msg, messages[i].getMessageSize(), 0);
     }
     return true;
@@ -77,15 +77,16 @@ void Protocol::setData(vector<BYTE> data, int type){
 int Protocol::recvMessage(int sockt){
     BYTE dataRec[MAXSIZE+4];
     int r = recv(sockt, dataRec, MAXSIZE+4, 0);
-    cout << bitset<8>(dataRec[0]) << bitset<8>(dataRec[1]) << bitset<8>(dataRec[2]) << "|\t";
+    cout << bitset<8>(dataRec[0]) << "|" << bitset<8>(dataRec[1]) << "|" << bitset<8>(dataRec[2]) << "|" << bitset<8>(dataRec[3]) << "|\t";
     cout << "recv response: " << r << endl;
     if(dataRec[0] != BEGIN){
         return NOISE;
     }
     Message msg = Message();
     int size = (int)(dataRec[1]>>2);
+    cout << "Tamanho:" << size << "\t";
     msg.setBitFields(dataRec[0], dataRec[1], dataRec[2], dataRec[size+3]);
-    cout << "Sequence:" << msg.sequence.to_ulong() << endl;
+    cout << "Sequence:" << msg.sequence.to_ulong() << "\t";
     // FIXME: Erro na primeira mensagem de sequencialização
     // if(msg.sequence.to_ulong() != ((messages.back().sequence.to_ulong()+1)%(MAXSIZE+1))){
     //     return SEQ_MISS;

@@ -10,12 +10,13 @@ int main(){
     while(true){
         int status = protocol.recvMessage(sockt);
         cout << "status: " << status << endl;
-        cout << protocol.getDataAsString() << endl;
+        // cout << protocol.getDataAsString() << endl;
         if(status > 0){
             if(status == ENDTX){
                 protocol = Protocol();
                 //TODO: send ACK
             }else if(status == CD){
+                cout << "Recebeu CD\n";
                 cd(protocol.getDataAsString());
             }else if(status == LS){
                 cout << "Recebeu LS\n";
