@@ -17,6 +17,8 @@ public:
     string getDataAsString();
     int recvMessage(int sockt);
     void addMessage(Message msg);
+    void transmit(int sockt, int type, int window);
+    void receive(int sockt, int type, int window);
 
     Protocol();
 };

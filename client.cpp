@@ -32,6 +32,7 @@ int main(){
                 //TODO
             }else if(command == "lsr"){
                 Message msg = Message();
+                line.replace(line.find("lsr"), string("lsr").length(), "ls");
                 protocol.setData(vector<BYTE>(line.begin(), line.end()), LS);
                 protocol.sendMessages(sockt, WAIT_STOP);
                 // TODO: imprimir resposta

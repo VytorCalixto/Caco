@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string.h>
 #include <vector>
+#include <bitset>
 #include <cstdlib>
 
 using namespace std;
@@ -44,24 +45,15 @@ using namespace std;
 #define SEQ_MISS -2
 #define INCONSISTENT -3
 
+//Bit fields size
+#define BEGIN_S 8
+#define SIZE_S 6
+#define SEQUENCE_S 6
+#define TYPE_S 4
+#define PARITY_S 8
+
 //Data types
 #define BYTE unsigned char
 
-typedef struct{
-	int begin   : 8,
-        size    : 6,
-        sequence: 6,
-        type    : 4,
-        parity  : 8;
-}i_Control;
-
-typedef struct{
-	char begin,sizeSeq,seqType,parity;
-}c_Control;
-
-typedef union {
-	c_Control c_ctrl;
-    i_Control i_ctrl;
-}Header;
 
 #endif
