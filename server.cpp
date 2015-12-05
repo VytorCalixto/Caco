@@ -9,6 +9,8 @@ int main(){
     cout << "Você está rodando o servidor Caco\n";
     while(true){
         int status = protocol.recvMessage(sockt);
+        cout << "status: " << status << endl;
+        cout << protocol.getDataAsString() << endl;
         if(status > 0){
             if(status == ENDTX){
                 protocol = Protocol();

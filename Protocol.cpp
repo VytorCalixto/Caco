@@ -77,17 +77,19 @@ void Protocol::setData(vector<BYTE> data, int type){
 int Protocol::recvMessage(int sockt){
     BYTE dataRec[MAXSIZE+4];
     int r = recv(sockt, dataRec, MAXSIZE+4, 0);
-    cout << "recv response: " << r << endl;
     cout << bitset<8>(dataRec[0]) << bitset<8>(dataRec[1]) << bitset<8>(dataRec[2]) << "|\t";
+    cout << "recv response: " << r << endl;
     if(dataRec[0] != BEGIN){
         return NOISE;
     }
     Message msg = Message();
     int size = (int)(dataRec[1]>>2);
     msg.setBitFields(dataRec[0], dataRec[1], dataRec[2], dataRec[size+3]);
-    if(msg.sequence.to_ulong() != ((messages.back().sequence.to_ulong()+1)%(MAXSIZE+1))){
-        return SEQ_MISS;
-    }
+    cout << "Sequence:" << msg.sequence.to_ulong() << endl;
+    // FIXME: Erro na primeira mensagem de sequencialização
+    // if(msg.sequence.to_ulong() != ((messages.back().sequence.to_ulong()+1)%(MAXSIZE+1))){
+    //     return SEQ_MISS;
+    // }
     if(!msg.checkParity()){
         return INCONSISTENT;
     }
@@ -99,6 +101,7 @@ int Protocol::recvMessage(int sockt){
     memcpy(msgData,dataRec+3,size);
     msg.data.insert(msg.data.end(), msgData, msgData+size);
     messages.push_back(msg);
+    cout << "Tipo:" << (int)msg.type.to_ulong() << endl;
     return (int)msg.type.to_ulong();
 }
 

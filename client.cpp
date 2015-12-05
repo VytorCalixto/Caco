@@ -53,6 +53,7 @@ int main(){
         }
 
         int status = protocol.recvMessage(sockt);
+        cout << "Status: " << status << endl;
         if(status > 0){
             if(status == ENDTX){
                 protocol = Protocol();
