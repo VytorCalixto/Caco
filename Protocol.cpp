@@ -87,10 +87,10 @@ int Protocol::recvMessage(int sockt){
     cout << "Tamanho:" << size << "\t";
     msg.setBitFields(dataRec[0], dataRec[1], dataRec[2], dataRec[size+3]);
     cout << "Sequence:" << msg.sequence.to_ulong() << "\t";
-    // FIXME: Erro na primeira mensagem de sequencialização
-    // if(msg.sequence.to_ulong() != ((messages.back().sequence.to_ulong()+1)%(MAXSIZE+1))){
-    //     return SEQ_MISS;
-    // }
+    if(!messages.empty() &&
+        (msg.sequence.to_ulong() != ((messages.back().sequence.to_ulong()+1)%(MAXSIZE+1)))){
+        return SEQ_MISS;
+    }
     if(!msg.checkParity()){
         return INCONSISTENT;
     }
