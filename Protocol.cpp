@@ -74,7 +74,7 @@ int Protocol::setData(vector<BYTE> data, int type){
         msg.data = subvector;
         if(size < MINSIZE){
             BYTE zero = 0x00;
-            msg.data.insert(msg.data.begin(), MINSIZE-size, zero);
+            msg.data.insert(msg.data.end(), MINSIZE-size, zero);
             size = MINSIZE;
         }
         msg.size = bitset<SIZE_S>(size);

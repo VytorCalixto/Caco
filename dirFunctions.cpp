@@ -16,6 +16,7 @@ void cd(string path){
 
 string ls(string args){
     string output;
+    args += " 2>&1";
     FILE *lsOut = popen(args.c_str(), "r");
     if(!lsOut){
         throw "Couldn't execute ls";
