@@ -128,6 +128,7 @@ void Protocol::transmit(int sockt, int window){
     int messagesLeft = messages.size();
     while(messagesLeft > 0){
         for(int j=0; j < window; ++j) {
+            // FIXME: this will probably brake with many messages
             FrameItem fi = {.index = lastFramed++, .sent=false};
             frame.push_back(fi);
             if(!frame[j].sent){
