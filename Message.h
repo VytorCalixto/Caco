@@ -14,12 +14,12 @@ public:
 
     BYTE calcParity();
     bool checkParity();
-    // string getSendData();
     void setBitFields(BYTE begin, BYTE sizeSeq, BYTE seqType, BYTE parity);
     vector<BYTE> getBitFieldsAsBytes();
     vector<BYTE> getMessage();
     char* getMessageAsCharPointer();
     int getMessageSize();
+    int dataToInt();
 
     Message();
 };

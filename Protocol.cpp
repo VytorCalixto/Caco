@@ -10,19 +10,29 @@ void Protocol::setMessages(vector<Message> messages){
     this->messages = messages;
 }
 
-bool Protocol::sendMessages(int socket, int window) {
+bool Protocol::sendMessages(int socket) {
+    bool success = true;
     for(int i=0; i < messages.size(); ++i) {
-        // cout << "message: " << messages[i] << endl;
-        vector<BYTE> message = messages[i].getMessage();
-        unsigned char* msg = reinterpret_cast<unsigned char*> (message.data());
-        // cout << "char* msg: ";
-        // for(int j=0;j<message.size();++j){
-        //     cout << bitset<8>(msg[j]);
-        // }
-        // cout <<endl;
-        send(socket, msg, messages[i].getMessageSize(), 0);
+        int status = sendMessage(socket, i);
+        if(status < 0) {
+            success = false;
+            cout << "fail" << endl;
+        }
     }
-    return true;
+    return success;
+}
+
+bool Protocol::sendMessage(int socket, int index) {
+    cout << "message: " << messages[index] << endl;
+    vector<BYTE> message = messages[index].getMessage();
+    unsigned char* msg = reinterpret_cast<unsigned char*> (message.data());
+    // cout << "char* msg: ";
+    // for(int j=0;j<message.size();++j){
+    //     cout << bitset<8>(msg[j]);
+    // }
+    // cout <<endl;
+    int status = send(socket, msg, messages[index].getMessageSize(), 0);
+    return (status >= 0);
 }
 
 vector<BYTE> Protocol::getData(){
@@ -78,17 +88,17 @@ int Protocol::recvMessage(int sockt){
     BYTE dataRec[MAXSIZE+4];
     int r = recv(sockt, dataRec, MAXSIZE+4, 0);
     cout << bitset<8>(dataRec[0]) << "|" << bitset<8>(dataRec[1]) << "|" << bitset<8>(dataRec[2]) << "|" << bitset<8>(dataRec[3]) << "|\t";
-    cout << "recv response: " << r << endl;
+    // cout << "recv response: " << r << endl;
     if(dataRec[0] != BEGIN){
         return NOISE;
     }
     Message msg = Message();
     int size = (int)(dataRec[1]>>2);
-    cout << "Tamanho:" << size << "\t";
+    // cout << "Tamanho:" << size << "\t";
     msg.setBitFields(dataRec[0], dataRec[1], dataRec[2], dataRec[size+3]);
-    cout << "Sequence:" << msg.sequence.to_ulong() << "\t";
-    if(!messages.empty() &&
-        (msg.sequence.to_ulong() != ((messages.back().sequence.to_ulong()+1)%(MAXSIZE+1)))){
+    // cout << "Sequence:" << msg.sequence.to_ulong() << "\t";
+    if(!receivedMessages.empty() &&
+        (msg.sequence.to_ulong() != ((receivedMessages.back().sequence.to_ulong()+1)%(MAXSIZE+1))) && (msg.sequence.to_ulong() != receivedMessages.back().sequence.to_ulong()) ){
         return SEQ_MISS;
     }
     if(!msg.checkParity()){
@@ -101,22 +111,52 @@ int Protocol::recvMessage(int sockt){
     BYTE msgData[size];
     memcpy(msgData,dataRec+3,size);
     msg.data.insert(msg.data.end(), msgData, msgData+size);
-    messages.push_back(msg);
-    cout << "Tipo:" << (int)msg.type.to_ulong() << endl;
+    receivedMessages.push_back(msg);
+    // cout << "Tipo:" << (int)msg.type.to_ulong() << endl;
     return (int)msg.type.to_ulong();
 }
 
-void Protocol::transmit(int sockt, int type, int window){
+void Protocol::transmit(int sockt, int window){
     int status;
-    for(int i=0; i < messages.size(); ++i){
-        //TODO: send part of output back
+    vector<int> frame;
+    int lastFramed = 0;
+    int messagesLeft = messages.size();
+    bool shouldSend = true;
+    while(messagesLeft > 0){
+        for(int j=0; j < window; ++j) {
+            frame.push_back(lastFramed++);
+            if(shouldSend) sendMessage(sockt, frame[j]);
+        }
+        // TODO: timeout
         status = recvMessage(sockt);
-        if(!status){
-            //TODO: send part of output back again
+        cout << "transmit status:" << status << endl;
+        shouldSend = true;
+        if(status == 0){
+            int nackIndex = stoi(getDataAsString());
+            for(int j=0; j < window; ++j) {
+                if(frame[j] < nackIndex) {
+                    frame.erase(frame.begin() + j);
+                    --messagesLeft;
+                }
+            }
         }else if(status == 1){
-            //TODO: send another part of output back
-        }else{
-            //TODO: send NACK back
+            int ackIndex = stoi(getDataAsString());
+            for(int j=0; j < window; ++j) {
+                if(frame[j] <= ackIndex) {
+                    frame.erase(frame.begin() + j);
+                    --messagesLeft;
+                }
+            }
+        }else if(status == OK) {
+            frame.erase(frame.begin());
+            --messagesLeft;
+        } else if(status == OUTPUT || status == ERROR) {
+            frame.erase(frame.begin());
+            --messagesLeft;
+            cout << "Remoto:\n" << ((status == ERROR)?"ERROR: ":"") << getDataAsString() << endl;
+        } else {
+            //TODO: treat error
+            shouldSend = false;
         }
     }
 }

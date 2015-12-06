@@ -67,27 +67,10 @@ int Message::getMessageSize(){
     return size.to_ulong()+4;
 }
 
-// string Message::getSendData() {
-//     calcParity();
-//     string s(data.begin(), data.end());
-//     int size = data.size();
-//     //TODO: quebrar em partes aqui? ou tem que quebrar no protocolo?
-//     header.i_ctrl.size = size;
-//     header.i_ctrl.sequence = 1;
-//     char *fill;
-//     if(size < 63) {
-//         fill = (char*) malloc((63-size)*sizeof(char));
-//         memset(fill, 0, (63-size)*sizeof(char));
-//     }
-//     string d;
-//     d += header.c_ctrl.begin;
-//     d += header.c_ctrl.sizeSeq;
-//     d += header.c_ctrl.seqType;
-//     d += s.c_str();
-//     d += fill;
-//     d += header.c_ctrl.parity;
-//     return d;
-// }
+int Message::dataToInt() {
+    string str(data.begin(), data.end());
+    return stoi(str);
+}
 
 ostream& operator<<(ostream& os, const Message& msg){
     os << '|' << msg.begin << '|' << msg.size << '|' << msg.sequence << '|' << msg.type << '|';

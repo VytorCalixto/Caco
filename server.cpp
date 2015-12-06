@@ -19,9 +19,11 @@ int main(){
                 cout << "Recebeu CD\n";
                 cd(protocol.getDataAsString());
             }else if(status == LS){
-                cout << "Recebeu LS\n";
+                cout << protocol.getDataAsString() << endl;
                 string output = ls(protocol.getDataAsString());
-                //TODO: send output back
+                cout << "LS:" << output << endl;
+                protocol.setData(vector<BYTE>(output.begin(), output.end()), OUTPUT);
+                protocol.sendMessages(sockt);
             }else if(status == PUT){
                 //TODO
             }else if(status == GET){

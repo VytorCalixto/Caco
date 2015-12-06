@@ -31,17 +31,17 @@ int main(){
             }else if(command == "cdr"){
                 args = line.substr(pos+1, line.size());
                 protocol.setData(vector<BYTE>(args.begin(), args.end()), CD);
-                protocol.sendMessages(sockt, WAIT_STOP);
+                protocol.transmit(sockt, WAIT_STOP);
             }else if(command == "lsr"){
-                Message msg = Message();
                 line.replace(line.find("lsr"), string("lsr").length(), "ls");
                 protocol.setData(vector<BYTE>(line.begin(), line.end()), LS);
-                protocol.sendMessages(sockt, WAIT_STOP);
-                // TODO: imprimir resposta
+                protocol.transmit(sockt, WAIT_STOP);
             }else if(command == "put"){
-                //TODO
+                protocol.setData(vector<BYTE>(line.begin(), line.end()), PUT);
+                protocol.transmit(sockt, WAIT_STOP);
             }else if(command == "get"){
-
+                protocol.setData(vector<BYTE>(line.begin(), line.end()), GET);
+                protocol.transmit(sockt, WAIT_STOP);
             }else if(command == "help"){
                 printCommandsList();
             }else{
@@ -53,24 +53,6 @@ int main(){
         }catch(out_of_range e){
             cerr<<"Error: Esse comando requer argumentos."<<endl;
         }
-
-        // int status = protocol.recvMessage(sockt);
-        // cout << "Status: " << status << endl;
-        // if(status > 0){
-        //     if(status == ENDTX){
-        //         protocol = Protocol();
-        //         //TODO: send ACK
-        //     }else if(status == CD){
-        //         cd(protocol.getDataAsString());
-        //     }else if(status == LS){
-        //         string output = ls(protocol.getDataAsString());
-        //         //TODO: send output back
-        //     }else if(status == PUT){
-        //         //TODO
-        //     }else if(status == GET){
-        //         //TODO
-        //     }
-        // }
     }
     return 0;
 }
