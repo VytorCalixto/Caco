@@ -25,5 +25,6 @@ string ls(string args){
         output += buffer;
     }
     pclose(lsOut);
+    cout << "output: "<< output<<endl;
     return output;
 }

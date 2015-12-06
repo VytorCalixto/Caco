@@ -11,26 +11,30 @@ int main(){
         int status = receiveProtocol.recvMessage(sockt);
         cout << "status: " << status << endl;
         // cout << protocol.getDataAsString() << endl;
-        if(status > 0){
-            if(status == ENDTX){
-                // protocol = Protocol();
-                //TODO: send ACK
-            }else if(status == CD){
+        try{
+            if(status == NOISE){
+                continue;
+            }
+            if(status == CD){
                 cout << "Recebeu CD\n";
                 cd(receiveProtocol.getDataAsString());
             }else if(status == LS){
-                string output = ls(receiveProtocol.getDataAsString());
+                cout << "protocol data: " << receiveProtocol.getDataAsString() << endl;
+                cout << "message data: " << receiveProtocol.getMessages().back().getDataAsString() << endl;
+                string output = ls(receiveProtocol.getMessages().back().getDataAsString());
                 cout << "LS: " << output << endl;
-                // receiveProtocol = Protocol();
-                receiveProtocol.setData(vector<BYTE>(output.begin(), output.end()), OUTPUT);
-                receiveProtocol.sendMessages(sockt);
-                // sendProtocol = Protocol();
+                sendProtocol.setData(vector<BYTE>(output.begin(), output.end()), OUTPUT);
+                sendProtocol.transmit(sockt, WAIT_STOP);
             }else if(status == PUT){
                 //TODO
             }else if(status == GET){
                 //TODO
             }
+        }catch(char const* strException){
+            cout << "Erro:" <<strException <<endl;
         }
+        sendProtocol.reset();
+        receiveProtocol.reset();
     }
     return 0;
 }

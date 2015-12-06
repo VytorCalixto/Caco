@@ -20,6 +20,7 @@ public:
     char* getMessageAsCharPointer();
     int getMessageSize();
     int dataToInt();
+    string getDataAsString();
 
     Message();
 };
