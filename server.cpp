@@ -5,25 +5,26 @@
 
 int main(){
     int sockt = ConexaoRawSocket(DEVICE);
-    Protocol protocol;
+    Protocol receiveProtocol, sendProtocol;
     cout << "Você está rodando o servidor Caco\n";
     while(true){
-        int status = protocol.recvMessage(sockt);
+        int status = receiveProtocol.recvMessage(sockt);
         cout << "status: " << status << endl;
         // cout << protocol.getDataAsString() << endl;
         if(status > 0){
             if(status == ENDTX){
-                protocol = Protocol();
+                // protocol = Protocol();
                 //TODO: send ACK
             }else if(status == CD){
                 cout << "Recebeu CD\n";
-                cd(protocol.getDataAsString());
+                cd(receiveProtocol.getDataAsString());
             }else if(status == LS){
-                cout << protocol.getDataAsString() << endl;
-                string output = ls(protocol.getDataAsString());
-                cout << "LS:" << output << endl;
-                protocol.setData(vector<BYTE>(output.begin(), output.end()), OUTPUT);
-                protocol.sendMessages(sockt);
+                string output = ls(receiveProtocol.getDataAsString());
+                cout << "LS: " << output << endl;
+                // receiveProtocol = Protocol();
+                receiveProtocol.setData(vector<BYTE>(output.begin(), output.end()), OUTPUT);
+                receiveProtocol.sendMessages(sockt);
+                // sendProtocol = Protocol();
             }else if(status == PUT){
                 //TODO
             }else if(status == GET){

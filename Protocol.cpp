@@ -16,7 +16,6 @@ bool Protocol::sendMessages(int socket) {
         int status = sendMessage(socket, i);
         if(status < 0) {
             success = false;
-            cout << "fail" << endl;
         }
     }
     return success;
@@ -49,7 +48,7 @@ string Protocol::getDataAsString(){
     return str;
 }
 
-void Protocol::setData(vector<BYTE> data, int type){
+int Protocol::setData(vector<BYTE> data, int type){
     vector<BYTE>::const_iterator first, last;
     int i;
     for (i=0; i <= ((int)data.size())-MAXSIZE; i+=MAXSIZE){
@@ -82,23 +81,24 @@ void Protocol::setData(vector<BYTE> data, int type){
         msg.calcParity();
         messages.push_back(msg);
     }
+    return messages.size();
 }
 
 int Protocol::recvMessage(int sockt){
     BYTE dataRec[MAXSIZE+4];
     int r = recv(sockt, dataRec, MAXSIZE+4, 0);
     cout << bitset<8>(dataRec[0]) << "|" << bitset<8>(dataRec[1]) << "|" << bitset<8>(dataRec[2]) << "|" << bitset<8>(dataRec[3]) << "|\t";
-    // cout << "recv response: " << r << endl;
+    cout << "recv response: " << r << endl;
     if(dataRec[0] != BEGIN){
         return NOISE;
     }
     Message msg = Message();
     int size = (int)(dataRec[1]>>2);
-    // cout << "Tamanho:" << size << "\t";
+    cout << "Tamanho:" << size << "\t";
     msg.setBitFields(dataRec[0], dataRec[1], dataRec[2], dataRec[size+3]);
-    // cout << "Sequence:" << msg.sequence.to_ulong() << "\t";
-    if(!receivedMessages.empty() &&
-        (msg.sequence.to_ulong() != ((receivedMessages.back().sequence.to_ulong()+1)%(MAXSIZE+1))) && (msg.sequence.to_ulong() != receivedMessages.back().sequence.to_ulong()) ){
+    cout << "Sequence:" << msg.sequence.to_ulong() << "\t";
+    if(!messages.empty() &&
+        (msg.sequence.to_ulong() != ((messages.back().sequence.to_ulong()+1)%(MAXSIZE+1)))){
         return SEQ_MISS;
     }
     if(!msg.checkParity()){
@@ -111,8 +111,8 @@ int Protocol::recvMessage(int sockt){
     BYTE msgData[size];
     memcpy(msgData,dataRec+3,size);
     msg.data.insert(msg.data.end(), msgData, msgData+size);
-    receivedMessages.push_back(msg);
-    // cout << "Tipo:" << (int)msg.type.to_ulong() << endl;
+    messages.push_back(msg);
+    cout << "Tipo:" << (int)msg.type.to_ulong() << endl;
     return (int)msg.type.to_ulong();
 }
 
