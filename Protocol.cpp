@@ -113,11 +113,11 @@ int Protocol::recvMessage(int sockt){
     return (int)msg.type.to_ulong();
 }
 
-void Protocol::transmit(int sockt, int window){
+void Protocol::transmit(int sockt, int window, bool dataEndable){
     int status;
     vector<FrameItem> frame;
     int lastFramed = -1;
-    setData(vector<BYTE>(1, 0), ENDTX);
+    if(dataEndable) setData(vector<BYTE>(1, 0), ENDTX);
     int messagesLeft = messages.size();
     Protocol response;
     while(messagesLeft > 0){
@@ -171,9 +171,6 @@ void Protocol::transmit(int sockt, int window){
         }
     }
     reset();
-    vector<BYTE> val(1,(BYTE)0);
-    setData(val, ENDTX);
-    sendMessage(sockt,0);
 }
 
 int Protocol::receive(int sockt, int type, int window, bool dataEndable){
@@ -190,7 +187,7 @@ int Protocol::receive(int sockt, int type, int window, bool dataEndable){
         }
         status = recvMessage(sockt);
         cout << "receive status:" << status << endl;
-        cout << "sequence: "<<messages.back().sequence.to_ulong()<<" next: "<<nextSequence<<endl;
+        // cout << "sequence: "<<messages.back().sequence.to_ulong()<<" next: "<<nextSequence<<endl;
         if(status == NOISE){
             continue;
         } else if(status == type) {
@@ -219,6 +216,7 @@ int Protocol::receive(int sockt, int type, int window, bool dataEndable){
         vector<BYTE> val(1,(BYTE)messages.back().sequence.to_ulong());
         response.setData(val, ACK);
         response.sendMessages(sockt);
+        messages.pop_back();
     }
     return 0;
 }

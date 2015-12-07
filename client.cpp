@@ -65,13 +65,34 @@ int main(){
                 } else {
                     cout << "ERROR: arquivo não existe\n";
                 }
+                sendProtocol.reset();
+                receiveProtocol.reset();
             }else if(command == "get"){
                 args = line.substr(pos+1, line.size());
                 sendProtocol.setData(vector<BYTE>(args.begin(), args.end()), GET);
                 sendProtocol.sendMessage(sockt, 0);
                 int error = receiveProtocol.receive(sockt, SIZE, WAIT_STOP, false);
                 if(error < 0) continue;
-                // int fileSize = (int) receiveProtocol.getDataAsString()[0];
+                string s_size = receiveProtocol.getDataAsString();
+                cout << s_size << endl;
+                unsigned int fileSize = stoi(s_size);
+                cout << "Tamanho: " << fileSize << endl;
+                sendProtocol.reset();
+                if(hasEnoughSpace(fileSize)) {
+                    sendProtocol.setData(vector<BYTE>(1,(BYTE)0), OK);
+                    sendProtocol.sendMessage(sockt,0);
+                } else {
+                    cout << "ERROR: não há espaço disponível\n";
+                    sendProtocol.setData(vector<BYTE>(1,(BYTE)SPACE_ERR), ERROR);
+                    sendProtocol.sendMessage(sockt,0);
+                    continue;
+                }
+                receiveProtocol.reset();
+                receiveProtocol.receive(sockt,DATA,SLIDING,true);
+                cout <<"conteudo: "<< receiveProtocol.getDataAsString()<<endl;
+                writeFile(getWorkingPath()+"/"+args,receiveProtocol.getData());
+                sendProtocol.reset();
+                receiveProtocol.reset();
             }else if(command == "help"){
                 printCommandsList();
             }else{
