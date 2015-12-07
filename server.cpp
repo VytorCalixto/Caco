@@ -37,7 +37,7 @@ int main(){
                 receiveProtocol.reset();
                 receiveProtocol.receive(sockt,SIZE,WAIT_STOP,false);
                 cout << "fileSize: " << receiveProtocol.getDataAsString() <<endl;
-                int fileSize = stoi(receiveProtocol.getDataAsString());
+                unsigned long long fileSize = stoi(receiveProtocol.getDataAsString());
                 sendProtocol.reset();
                 if(hasEnoughSpace(fileSize)){
                     sendProtocol.setData(vector<BYTE>(1,(BYTE)0), OK);
@@ -45,6 +45,7 @@ int main(){
                 }else{
                     sendProtocol.setData(vector<BYTE>(1,(BYTE)SPACE_ERR), ERROR);
                     sendProtocol.sendMessage(sockt,0);
+                    continue;
                 }
                 receiveProtocol.reset();
                 receiveProtocol.receive(sockt,DATA,SLIDING,true);
@@ -52,12 +53,34 @@ int main(){
                 writeFile(getWorkingPath()+"/"+fileName,receiveProtocol.getData());
 
             }else if(status == GET){
-                //TODO
+                string filePath = getWorkingPath()+"/"+receiveProtocol.getDataAsString();
+                if(fexists(filePath)) {
+                    string size = to_string(filesize(filePath));
+                    cout << "ARQUIVO: " << filePath << "|" << size << endl;
+                    sendProtocol.setData(vector<BYTE>(size.begin(), size.end()), SIZE);
+                    sendProtocol.sendMessage(sockt, 0);
+                    int error = receiveProtocol.receive(sockt, OK, WAIT_STOP, false);
+                    if(error < 0) continue;
+                    sendProtocol.reset();
+                    ifstream putFile (filePath);
+                    stringstream buffer;
+                    buffer << putFile.rdbuf();
+                    string data = buffer.str();
+                    sendProtocol.setData(vector<BYTE>(data.begin(), data.end()), DATA);
+                    sendProtocol.transmit(sockt, SLIDING);
+                } else {
+                    sendProtocol.setData(vector<BYTE>(1,(BYTE)DIR_ERR), ERROR);
+                    sendProtocol.sendMessage(sockt,0);
+                    continue;
+                }
             }else if(status == ENDTX){
                 sendProtocol.reset();
                 vector<BYTE> val(1,(BYTE)receiveProtocol.getMessages().back().sequence.to_ulong());
                 sendProtocol.setData(val, ACK);
                 sendProtocol.sendMessages(sockt);
+            }else if(status < 0 && status != NOISE){
+                sendProtocol.setData(vector<BYTE>(1,(BYTE)NACK), ERROR);
+                sendProtocol.sendMessage(sockt,0);
             }
         }catch(char const* strException){
             cout << "Erro:" <<strException <<endl;
