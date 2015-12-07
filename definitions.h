@@ -15,6 +15,9 @@ using namespace std;
 #define MAXSIZE 63
 #define MINSIZE 60
 
+//Read buffer size
+#define BUFFER 1024
+
 //Delimiter indicating beginning of a message
 #define BEGIN 0x7E
 //Socket device
