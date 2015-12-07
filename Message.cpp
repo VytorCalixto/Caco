@@ -79,12 +79,10 @@ string Message::getDataAsString() {
 
 ostream& operator<<(ostream& os, const Message& msg){
     os << '|' << msg.begin << '|' << msg.size << '|' << msg.sequence << '|' << msg.type << '|';
-    // os << msg.begin << msg.size << msg.sequence << msg.type;
     for(int i=0; i<msg.data.size(); ++i){
         os << bitset<8>(msg.data[i]);
     }
     os << '|' << msg.parity << '|';
-    // os << msg.parity;
     return os;
 }
 
