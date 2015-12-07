@@ -72,6 +72,11 @@ int Message::dataToInt() {
     return stoi(str);
 }
 
+string Message::getDataAsString() {
+    string str(data.begin(), data.end());
+    return str;
+}
+
 ostream& operator<<(ostream& os, const Message& msg){
     os << '|' << msg.begin << '|' << msg.size << '|' << msg.sequence << '|' << msg.type << '|';
     // os << msg.begin << msg.size << msg.sequence << msg.type;

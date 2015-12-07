@@ -9,7 +9,7 @@ void printCommandsList();
 int main(){
     int pos, sockt = ConexaoRawSocket(DEVICE);
     string line, command, args;
-    Protocol protocol = Protocol();
+    Protocol receiveProtocol, sendProtocol;
     printCommandsList();
     while(true){
         cout << endl << "Entre com o comando:" << endl;
@@ -30,18 +30,21 @@ int main(){
                 cout << ls(line);
             }else if(command == "cdr"){
                 args = line.substr(pos+1, line.size());
-                protocol.setData(vector<BYTE>(args.begin(), args.end()), CD);
-                protocol.transmit(sockt, WAIT_STOP);
+                sendProtocol.setData(vector<BYTE>(args.begin(), args.end()), CD);
+                sendProtocol.transmit(sockt, WAIT_STOP);
             }else if(command == "lsr"){
                 line.replace(line.find("lsr"), string("lsr").length(), "ls");
-                protocol.setData(vector<BYTE>(line.begin(), line.end()), LS);
-                protocol.transmit(sockt, WAIT_STOP);
+                sendProtocol.setData(vector<BYTE>(line.begin(), line.end()), LS);
+                sendProtocol.sendMessage(sockt,0);
+                cout << "Remoto:" << endl;
+                receiveProtocol.receive(sockt, WAIT_STOP);
+                cout << endl;
             }else if(command == "put"){
-                protocol.setData(vector<BYTE>(line.begin(), line.end()), PUT);
-                protocol.transmit(sockt, WAIT_STOP);
+                sendProtocol.setData(vector<BYTE>(line.begin(), line.end()), PUT);
+                sendProtocol.transmit(sockt, WAIT_STOP);
             }else if(command == "get"){
-                protocol.setData(vector<BYTE>(line.begin(), line.end()), GET);
-                protocol.transmit(sockt, WAIT_STOP);
+                sendProtocol.setData(vector<BYTE>(line.begin(), line.end()), GET);
+                sendProtocol.transmit(sockt, WAIT_STOP);
             }else if(command == "help"){
                 printCommandsList();
             }else{

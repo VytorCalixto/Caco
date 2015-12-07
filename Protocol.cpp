@@ -25,11 +25,6 @@ bool Protocol::sendMessage(int socket, int index) {
     cout << "message: " << messages[index] << endl;
     vector<BYTE> message = messages[index].getMessage();
     unsigned char* msg = reinterpret_cast<unsigned char*> (message.data());
-    // cout << "char* msg: ";
-    // for(int j=0;j<message.size();++j){
-    //     cout << bitset<8>(msg[j]);
-    // }
-    // cout <<endl;
     int status = send(socket, msg, messages[index].getMessageSize(), 0);
     return (status >= 0);
 }
@@ -69,7 +64,7 @@ int Protocol::setData(vector<BYTE> data, int type){
         msg.type = bitset<TYPE_S>(type);
         int size = ((int)data.size())-i;
         first = data.begin()+i;
-        last = data.begin()+size+1;
+        last = data.begin()+i+size+1;
         vector<BYTE> subvector(first, last);
         msg.data = subvector;
         if(size < MINSIZE){
@@ -97,22 +92,17 @@ int Protocol::recvMessage(int sockt){
     cout << "Tamanho:" << size << "\t";
     msg.setBitFields(dataRec[0], dataRec[1], dataRec[2], dataRec[size+3]);
     cout << "Sequence:" << msg.sequence.to_ulong() << "\t";
-    if(!messages.empty() &&
-        (msg.sequence.to_ulong() != ((messages.back().sequence.to_ulong()+1)%(MAXSIZE+1)))){
-        return SEQ_MISS;
-    }
-    if(!msg.checkParity()){
-        return INCONSISTENT;
-    }
-    if(msg.type.to_ulong() == ENDTX){
-        return ENDTX;
-    }
 
     BYTE msgData[size];
     memcpy(msgData,dataRec+3,size);
     msg.data.insert(msg.data.end(), msgData, msgData+size);
+
     messages.push_back(msg);
     cout << "Tipo:" << (int)msg.type.to_ulong() << endl;
+
+    if(!msg.checkParity()){
+        return INCONSISTENT;
+    }
     return (int)msg.type.to_ulong();
 }
 
@@ -122,59 +112,103 @@ void Protocol::transmit(int sockt, int window){
     int lastFramed = 0;
     int messagesLeft = messages.size();
     bool shouldSend = true;
+    Protocol response;
     while(messagesLeft > 0){
         for(int j=0; j < window; ++j) {
             frame.push_back(lastFramed++);
             if(shouldSend) sendMessage(sockt, frame[j]);
         }
         // TODO: timeout
-        status = recvMessage(sockt);
+        status = response.recvMessage(sockt);
         cout << "transmit status:" << status << endl;
         shouldSend = true;
-        if(status == 0){
-            int nackIndex = stoi(getDataAsString());
+        if(status == NACK){
+            int nackIndex = stoi(response.getMessages().back().getDataAsString());
             for(int j=0; j < window; ++j) {
                 if(frame[j] < nackIndex) {
                     frame.erase(frame.begin() + j);
                     --messagesLeft;
                 }
             }
-        }else if(status == 1){
-            int ackIndex = stoi(getDataAsString());
+            response.reset();
+
+        }else if(status == ACK){
+            int ackIndex = stoi(response.getMessages().back().getDataAsString());
             for(int j=0; j < window; ++j) {
                 if(frame[j] <= ackIndex) {
                     frame.erase(frame.begin() + j);
                     --messagesLeft;
                 }
             }
-        }else if(status == OK) {
-            frame.erase(frame.begin());
-            --messagesLeft;
-        } else if(status == OUTPUT || status == ERROR) {
-            frame.erase(frame.begin());
-            --messagesLeft;
-            cout << "Remoto:\n" << ((status == ERROR)?"ERROR: ":"") << getDataAsString() << endl;
+            response.reset();
+        // }else if(status == OK) {
+        //     frame.erase(frame.begin());
+        //     --messagesLeft;
+        // } else if(status == OUTPUT || status == ERROR) {
+        //     frame.erase(frame.begin());
+        //     --messagesLeft;
+        //     cout << "Remoto:\n" << ((status == ERROR)?"ERROR: ":"") << getDataAsString() << endl;
         } else {
             //TODO: treat error
             shouldSend = false;
         }
     }
+    reset();
+    vector<BYTE> val(1,(BYTE)0);
+    setData(val, ENDTX);
+    sendMessage(sockt,0);
 }
 
-void Protocol::receive(int sockt, int type, int window){
-    int status;
+void Protocol::receive(int sockt, int window){
+    int status, nextSequence;
+    vector<int> frame;
+    Protocol response;
+    bool shouldSend = false;
     do{
-        status = recvMessage(sockt);
-        if(status == type){
-            //TODO: send ACK back
-        }else{
-            //TODO: send NACK back
+        if(shouldSend){
+            response.sendMessages(sockt);
         }
+        status = recvMessage(sockt);
+        if(status == NOISE){
+            continue;
+        }else if(response.getMessages().back().sequence.to_ulong() != nextSequence){
+            response.reset();
+            vector<BYTE> val(1,(BYTE)nextSequence);
+            response.setData(val, NACK);
+            shouldSend = true;
+        }
+        else if(status == OUTPUT) {
+            cout << messages.back().getDataAsString();
+
+            frame.push_back(messages.size());
+
+            response.reset();
+            vector<BYTE> val(1,(BYTE)messages.back().sequence.to_ulong());
+            response.setData(val, ACK);
+            nextSequence = (messages.back().sequence.to_ulong()+1)%(MAXSIZE+1);
+        }else if(status == ERROR){
+            string str(messages.back().data.begin(), messages.back().data.end());
+            cout << "ERROR: " << getDataAsString() << endl;
+            break;
+        }else if(status == INCONSISTENT){
+            response.reset();
+            vector<BYTE> val(1,(BYTE)nextSequence);
+            response.setData(val, NACK);
+            shouldSend = true;
+        }else{
+            //TODO: treat error
+            break;
+        }
+        shouldSend = shouldSend || (frame.size()%window == 0);
     }while(status != ENDTX);
 }
 
 void Protocol::addMessage(Message msg) {
     messages.push_back(msg);
+}
+
+void Protocol::reset(){
+    messages.clear();
 }
 
 Protocol::Protocol(){
