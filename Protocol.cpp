@@ -131,7 +131,8 @@ void Protocol::transmit(int sockt, int window){
         status = response.recvMessage(sockt);
         cout << "transmit status:" << status << endl;
         if(status == NACK){
-            int nackIndex = stoi(getDataAsString());
+            printf("nstoi %i\n", response.getMessages().back().getDataAsString()[0]);
+            int nackIndex = response.getMessages().back().getDataAsString()[0];
             for(int j=0; j < window; ++j) {
                 if(frame[j].index < nackIndex) {
                     frame.erase(frame.begin() + j);
@@ -143,7 +144,8 @@ void Protocol::transmit(int sockt, int window){
             response.reset();
 
         }else if(status == ACK){
-            int ackIndex = stoi(response.getMessages().back().getDataAsString());
+            printf("astoi %i\n", response.getMessages().back().getDataAsString()[0]);
+            int ackIndex = response.getMessages().back().getDataAsString()[0];
             for(int j=0; j < window; ++j) {
                 if(frame[j].index <= ackIndex) {
                     frame.erase(frame.begin() + j);
@@ -168,48 +170,73 @@ void Protocol::transmit(int sockt, int window){
     sendMessage(sockt,0);
 }
 
-void Protocol::receive(int sockt, int window){
-    int status, nextSequence;
+int Protocol::receive(int sockt, int type, int window, bool dataEndable){
+    int status, nextSequence = 0;
     vector<int> frame;
     Protocol response;
     bool shouldSend = false;
+    int end = ((dataEndable)? ENDTX : type);
     do{
         if(shouldSend){
             response.sendMessages(sockt);
+            response.reset();
+            shouldSend = false;
         }
         status = recvMessage(sockt);
+        cout << "receive status:" << status << endl;
         if(status == NOISE){
             continue;
-        }else if(response.getMessages().back().sequence.to_ulong() != nextSequence){
-            response.reset();
-            vector<BYTE> val(1,(BYTE)nextSequence);
-            response.setData(val, NACK);
-            shouldSend = true;
-        }
-        else if(status == OUTPUT) {
-            cout << messages.back().getDataAsString();
-
-            frame.push_back(messages.size());
-
-            response.reset();
-            vector<BYTE> val(1,(BYTE)messages.back().sequence.to_ulong());
-            response.setData(val, ACK);
-            nextSequence = (messages.back().sequence.to_ulong()+1)%(MAXSIZE+1);
-        }else if(status == ERROR){
+        } else if(status == type) {
+            if(messages.back().sequence.to_ulong() != nextSequence){
+                response.reset();
+                vector<BYTE> val(1,(BYTE)nextSequence);
+                response.setData(val, NACK);
+                shouldSend = true;
+            } else if(window == WAIT_STOP || ((nextSequence % SLIDING) == 0)) {
+                response.reset();
+                vector<BYTE> val(1,(BYTE)messages.back().sequence.to_ulong());
+                response.setData(val, ACK);
+                nextSequence = (messages.back().sequence.to_ulong()+1)%(MAXSIZE+1);
+            } else {
+                //TODO: treat something?
+            }
+        } else if(status == ERROR) {
             string str(messages.back().data.begin(), messages.back().data.end());
             cout << "ERROR: " << getDataAsString() << endl;
-            break;
-        }else if(status == INCONSISTENT){
-            response.reset();
-            vector<BYTE> val(1,(BYTE)nextSequence);
-            response.setData(val, NACK);
-            shouldSend = true;
-        }else{
-            //TODO: treat error
-            break;
+            return -1;
         }
-        shouldSend = shouldSend || (frame.size()%window == 0);
-    }while(status != ENDTX);
+
+        // else if(messages.back().sequence.to_ulong() != nextSequence){
+        //     response.reset();
+        //     vector<BYTE> val(1,(BYTE)nextSequence);
+        //     response.setData(val, NACK);
+        //     shouldSend = true;
+        // }
+        // else if(status == OUTPUT) {
+        //     cout << messages.back().getDataAsString();
+        //
+        //     frame.push_back(messages.size());
+        //
+        //     response.reset();
+        //     vector<BYTE> val(1,(BYTE)messages.back().sequence.to_ulong());
+        //     response.setData(val, ACK);
+        //     nextSequence = (messages.back().sequence.to_ulong()+1)%(MAXSIZE+1);
+        // }else if(status == ERROR){
+        //     string str(messages.back().data.begin(), messages.back().data.end());
+        //     cout << "ERROR: " << getDataAsString() << endl;
+        //     break;
+        // }else if(status == INCONSISTENT){
+        //     response.reset();
+        //     vector<BYTE> val(1,(BYTE)nextSequence);
+        //     response.setData(val, NACK);
+        //     shouldSend = true;
+        // }else{
+        //     //TODO: treat error
+        //     break;
+        // }
+        // shouldSend = shouldSend || (frame.size()%window == 0);
+    }while(status != end);
+    return 0;
 }
 
 void Protocol::addMessage(Message msg) {

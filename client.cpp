@@ -31,14 +31,16 @@ int main(){
             }else if(command == "cdr"){
                 args = line.substr(pos+1, line.size());
                 sendProtocol.setData(vector<BYTE>(args.begin(), args.end()), CD);
-                sendProtocol.transmit(sockt, WAIT_STOP);
+                sendProtocol.sendMessage(sockt, 0);
+                receiveProtocol.receive(sockt, OK, WAIT_STOP, false);
+                cout << "Diretório remoto: " << args;
             }else if(command == "lsr"){
                 line.replace(line.find("lsr"), string("lsr").length(), "ls");
                 sendProtocol.setData(vector<BYTE>(line.begin(), line.end()), LS);
                 sendProtocol.sendMessage(sockt,0);
                 cout << "Remoto:" << endl;
-                receiveProtocol.receive(sockt, WAIT_STOP);
-                cout << endl;
+                receiveProtocol.receive(sockt, OUTPUT, WAIT_STOP, true);
+                cout << receiveProtocol.getDataAsString() << endl;
             }else if(command == "put"){
                 sendProtocol.setData(vector<BYTE>(line.begin(), line.end()), PUT);
                 sendProtocol.transmit(sockt, WAIT_STOP);
