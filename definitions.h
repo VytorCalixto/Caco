@@ -6,6 +6,8 @@
 #include <vector>
 #include <bitset>
 #include <cstdlib>
+#include <fstream>
+#include <sstream>
 
 using namespace std;
 
@@ -16,7 +18,7 @@ using namespace std;
 //Delimiter indicating beginning of a message
 #define BEGIN 0x7E
 //Socket device
-#define DEVICE "lo"
+#define DEVICE "eth0"
 //Message types
 #define NACK 0
 #define ACK 1

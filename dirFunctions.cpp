@@ -4,6 +4,8 @@
 #include <string.h>
 #include <vector>
 #include <stdio.h> //popen
+#include <sys/stat.h>
+#include <fstream>
 
 using namespace std;
 
@@ -27,4 +29,14 @@ string ls(string args){
     }
     pclose(lsOut);
     return output;
+}
+
+bool fexists(string path) {
+    struct stat buffer;
+    return (stat(path.c_str(), &buffer) == 0);
+}
+
+int filesize(string path) {
+    ifstream in(path, ifstream::ate | ifstream::binary);
+    return in.tellg();
 }

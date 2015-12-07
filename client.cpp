@@ -42,11 +42,35 @@ int main(){
                 receiveProtocol.receive(sockt, OUTPUT, WAIT_STOP, true);
                 cout << receiveProtocol.getDataAsString() << endl;
             }else if(command == "put"){
-                sendProtocol.setData(vector<BYTE>(line.begin(), line.end()), PUT);
-                sendProtocol.transmit(sockt, WAIT_STOP);
+                args = line.substr(pos+1, line.size());
+                if(fexists(args)) {
+                    int size = filesize(args);
+                    cout << "ARQUIVO: " << args << "|" << size << endl;
+                    sendProtocol.setData(vector<BYTE>(args.begin(), args.end()), PUT);
+                    sendProtocol.sendMessage(sockt, 0);
+                    int error = receiveProtocol.receive(sockt, OK, WAIT_STOP, false);
+                    if(error < 0) continue;
+                    sendProtocol.reset();
+                    sendProtocol.setData(vector<BYTE>(size), SIZE);
+                    sendProtocol.sendMessage(sockt, 0);
+                    error = receiveProtocol.receive(sockt, OK, WAIT_STOP, false);
+                    if(error < 0) continue;
+                    sendProtocol.reset();
+                    ifstream putFile (args);
+                    stringstream buffer;
+                    buffer << putFile.rdbuf();
+                    sendProtocol.setData(vector<BYTE>(buffer.str().begin(), buffer.str().begin()), PUT);
+                    sendProtocol.transmit(sockt, SLIDING);
+                } else {
+                    cout << "ERROR: arquivo não existe\n";
+                }
             }else if(command == "get"){
-                sendProtocol.setData(vector<BYTE>(line.begin(), line.end()), GET);
-                sendProtocol.transmit(sockt, WAIT_STOP);
+                args = line.substr(pos+1, line.size());
+                sendProtocol.setData(vector<BYTE>(args.begin(), args.end()), GET);
+                sendProtocol.sendMessage(sockt, 0);
+                int error = receiveProtocol.receive()sockt, SIZE, WAIT_STOP, false;
+                if(error < 0) continue;
+                int fileSize = (int) receiveProtocol.getDataAsString();
             }else if(command == "help"){
                 printCommandsList();
             }else{
@@ -58,6 +82,8 @@ int main(){
         }catch(out_of_range e){
             cerr<<"Error: Esse comando requer argumentos."<<endl;
         }
+        sendProtocol.reset();
+        receiveProtocol.reset();
     }
     return 0;
 }

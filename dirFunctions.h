@@ -9,4 +9,8 @@ void cd(string path);
 
 string ls(string path);
 
+bool fexists(string path);
+
+int filesize(string path);
+
 #endif
