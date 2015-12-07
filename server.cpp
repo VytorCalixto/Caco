@@ -19,8 +19,7 @@ int main(){
                 cout << "Recebeu CD\n";
                 cout << "CD: " << receiveProtocol.getDataAsString() << endl;
                 cd(receiveProtocol.getDataAsString());
-                vector<BYTE> val(1,(BYTE)0);
-                sendProtocol.setData(val, OK);
+                sendProtocol.setData(vector<BYTE>(1,(BYTE)0), OK);
                 sendProtocol.sendMessage(sockt,0);
             }else if(status == LS){
                 cout << "protocol data: " << receiveProtocol.getDataAsString() << endl;
@@ -31,9 +30,34 @@ int main(){
                 sendProtocol.transmit(sockt, WAIT_STOP);
                 cout << "finished transmit" << endl;
             }else if(status == PUT){
-                //TODO
+                string fileName = receiveProtocol.getDataAsString();
+                cout << "fileName: " << fileName <<endl;
+                sendProtocol.setData(vector<BYTE>(1,(BYTE)0), OK);
+                sendProtocol.sendMessage(sockt,0);
+                receiveProtocol.reset();
+                receiveProtocol.receive(sockt,SIZE,WAIT_STOP,false);
+                cout << "fileSize: " << receiveProtocol.getDataAsString() <<endl;
+                int fileSize = stoi(receiveProtocol.getDataAsString());
+                sendProtocol.reset();
+                if(hasEnoughSpace(fileSize)){
+                    sendProtocol.setData(vector<BYTE>(1,(BYTE)0), OK);
+                    sendProtocol.sendMessage(sockt,0);
+                }else{
+                    sendProtocol.setData(vector<BYTE>(1,(BYTE)SPACE_ERR), ERROR);
+                    sendProtocol.sendMessage(sockt,0);
+                }
+                receiveProtocol.reset();
+                receiveProtocol.receive(sockt,DATA,SLIDING,true);
+                cout <<"conteudo: "<< receiveProtocol.getDataAsString()<<endl;
+                writeFile(getWorkingPath()+"/"+fileName,receiveProtocol.getData());
+
             }else if(status == GET){
                 //TODO
+            }else if(status == ENDTX){
+                sendProtocol.reset();
+                vector<BYTE> val(1,(BYTE)receiveProtocol.getMessages().back().sequence.to_ulong());
+                sendProtocol.setData(val, ACK);
+                sendProtocol.sendMessages(sockt);
             }
         }catch(char const* strException){
             cout << "Erro:" <<strException <<endl;

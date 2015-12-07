@@ -13,4 +13,10 @@ bool fexists(string path);
 
 int filesize(string path);
 
+bool hasEnoughSpace(int size);
+
+string getWorkingPath();
+
+void writeFile(string path, vector<BYTE>data);
+
 #endif

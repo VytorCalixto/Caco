@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <errno.h>
 #include <unistd.h>
 #include <string.h>
@@ -6,6 +7,7 @@
 #include <stdio.h> //popen
 #include <sys/stat.h>
 #include <fstream>
+#include <sys/statvfs.h>
 
 using namespace std;
 
@@ -31,6 +33,11 @@ string ls(string args){
     return output;
 }
 
+string getWorkingPath(){
+   char temp[1024];
+   return (getcwd(temp, 1024) ? string(temp) : string(""));
+}
+
 bool fexists(string path) {
     struct stat buffer;
     return (stat(path.c_str(), &buffer) == 0);
@@ -39,4 +46,24 @@ bool fexists(string path) {
 int filesize(string path) {
     ifstream in(path, ifstream::ate | ifstream::binary);
     return in.tellg();
+}
+
+bool hasEnoughSpace(int size){
+    struct statvfs fsData;
+    string path = getWorkingPath();
+    statvfs(path.c_str(), &fsData);
+    int freeSpace = fsData.f_bsize * fsData.f_bfree;
+    return (freeSpace > size);
+}
+
+
+void writeFile(string path, vector<BYTE>data){
+    cout << "path: "<< path<<endl;
+    string strData(data.begin(), data.end());
+    ofstream file(path);
+    if (file.is_open()){
+        file << strData;
+        file.close();
+    }
+    else cout << "Unable to open file";
 }
