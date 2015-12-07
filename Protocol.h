@@ -9,6 +9,7 @@ private:
     vector<Message> messages;
     int timeout;
 public:
+    int sequence;
     bool sendMessages(int socket);
     bool sendMessage(int socket, int index);
     vector<Message> getMessages();

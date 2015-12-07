@@ -54,7 +54,7 @@ int Protocol::setData(vector<BYTE> data, int type){
     for (i=0; i <= ((int)data.size())-MAXSIZE; i+=MAXSIZE){
         Message msg = Message();
         msg.size = bitset<SIZE_S>(MAXSIZE);
-        msg.sequence = bitset<SEQUENCE_S>(messages.size()%(MAXSIZE+1));
+        msg.sequence = bitset<SEQUENCE_S>(sequence%(MAXSIZE+1));
         msg.type = bitset<TYPE_S>(type);
         first = data.begin()+i;
         last = data.begin()+i+MAXSIZE+1;
@@ -62,10 +62,11 @@ int Protocol::setData(vector<BYTE> data, int type){
         msg.data = subvector;
         msg.calcParity();
         messages.push_back(msg);
+        ++sequence;
     }
     if(i < data.size()){
         Message msg = Message();
-        msg.sequence = bitset<SEQUENCE_S>(messages.size()%(MAXSIZE+1));
+        msg.sequence = bitset<SEQUENCE_S>(sequence%(MAXSIZE+1));
         msg.type = bitset<TYPE_S>(type);
         int size = ((int)data.size())-i;
         first = data.begin()+i;
@@ -81,6 +82,7 @@ int Protocol::setData(vector<BYTE> data, int type){
         msg.size = bitset<SIZE_S>(size);
         msg.calcParity();
         messages.push_back(msg);
+        ++sequence;
     }
     return messages.size();
 }
@@ -230,4 +232,5 @@ void Protocol::reset(){
 }
 
 Protocol::Protocol(){
+    sequence = 0;
 }
