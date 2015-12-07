@@ -64,7 +64,7 @@ int Protocol::setData(vector<BYTE> data, int type){
         msg.type = bitset<TYPE_S>(type);
         int size = ((int)data.size())-i;
         first = data.begin()+i;
-        last = data.begin()+size+1;
+        last = data.begin()+i+size+1;
         vector<BYTE> subvector(first, last);
         msg.data = subvector;
         if(size < MINSIZE){
@@ -179,7 +179,7 @@ void Protocol::receive(int sockt, int window){
         }
         else if(status == OUTPUT) {
             cout << messages.back().getDataAsString();
-            
+
             frame.push_back(messages.size());
 
             response.reset();
