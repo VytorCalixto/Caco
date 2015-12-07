@@ -17,6 +17,7 @@ int main(){
             }
             if(status == CD){
                 cout << "Recebeu CD\n";
+                cout << "CD: " << receiveProtocol.getDataAsString() << endl;
                 cd(receiveProtocol.getDataAsString());
                 vector<BYTE> val(1,(BYTE)0);
                 sendProtocol.setData(val, OK);
@@ -28,6 +29,7 @@ int main(){
                 cout << "LS: " << output << endl;
                 sendProtocol.setData(vector<BYTE>(output.begin(), output.end()), OUTPUT);
                 sendProtocol.transmit(sockt, WAIT_STOP);
+                cout << "finished transmit" << endl;
             }else if(status == PUT){
                 //TODO
             }else if(status == GET){

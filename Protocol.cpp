@@ -189,7 +189,7 @@ int Protocol::receive(int sockt, int type, int window, bool dataEndable){
         if(status == NOISE){
             continue;
         } else if(status == type) {
-            if(messages.back().sequence.to_ulong() != nextSequence){
+            if(!messages.empty() && (messages.back().sequence.to_ulong() != nextSequence)){
                 response.reset();
                 vector<BYTE> val(1,(BYTE)nextSequence);
                 response.setData(val, NACK);
@@ -199,6 +199,7 @@ int Protocol::receive(int sockt, int type, int window, bool dataEndable){
                 vector<BYTE> val(1,(BYTE)messages.back().sequence.to_ulong());
                 response.setData(val, ACK);
                 nextSequence = (messages.back().sequence.to_ulong()+1)%(MAXSIZE+1);
+                shouldSend = true;
             } else {
                 //TODO: treat something?
             }
