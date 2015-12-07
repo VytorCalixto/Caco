@@ -7,7 +7,7 @@ done
 
 for i in {1..100}
 do
-    echo -e "$i\n">>10.txt
+    echo -e "$i\n">>100.txt
 done
 
 for i in {1..1000};

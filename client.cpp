@@ -44,14 +44,14 @@ int main(){
             }else if(command == "put"){
                 args = line.substr(pos+1, line.size());
                 if(fexists(args)) {
-                    int size = filesize(args);
+                    string size = to_string(filesize(args));
                     cout << "ARQUIVO: " << args << "|" << size << endl;
                     sendProtocol.setData(vector<BYTE>(args.begin(), args.end()), PUT);
                     sendProtocol.sendMessage(sockt, 0);
                     int error = receiveProtocol.receive(sockt, OK, WAIT_STOP, false);
                     if(error < 0) continue;
                     sendProtocol.reset();
-                    sendProtocol.setData(vector<BYTE>(size), SIZE);
+                    sendProtocol.setData(vector<BYTE>(size.begin(), size.end()), SIZE);
                     sendProtocol.sendMessage(sockt, 0);
                     error = receiveProtocol.receive(sockt, OK, WAIT_STOP, false);
                     if(error < 0) continue;
@@ -59,7 +59,8 @@ int main(){
                     ifstream putFile (args);
                     stringstream buffer;
                     buffer << putFile.rdbuf();
-                    sendProtocol.setData(vector<BYTE>(buffer.str().begin(), buffer.str().begin()), PUT);
+                    string data = buffer.str();
+                    sendProtocol.setData(vector<BYTE>(data.begin(), data.end()), DATA);
                     sendProtocol.transmit(sockt, SLIDING);
                 } else {
                     cout << "ERROR: arquivo não existe\n";
@@ -68,9 +69,9 @@ int main(){
                 args = line.substr(pos+1, line.size());
                 sendProtocol.setData(vector<BYTE>(args.begin(), args.end()), GET);
                 sendProtocol.sendMessage(sockt, 0);
-                int error = receiveProtocol.receive()sockt, SIZE, WAIT_STOP, false;
+                int error = receiveProtocol.receive(sockt, SIZE, WAIT_STOP, false);
                 if(error < 0) continue;
-                int fileSize = (int) receiveProtocol.getDataAsString();
+                // int fileSize = (int) receiveProtocol.getDataAsString()[0];
             }else if(command == "help"){
                 printCommandsList();
             }else{
