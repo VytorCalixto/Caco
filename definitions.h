@@ -16,7 +16,7 @@ using namespace std;
 //Delimiter indicating beginning of a message
 #define BEGIN 0x7E
 //Socket device
-#define DEVICE "lo"
+#define DEVICE "enp8s2"
 //Message types
 #define NACK 0
 #define ACK 1

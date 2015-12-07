@@ -27,7 +27,7 @@ bool Protocol::sendMessages(int socket) {
 }
 
 bool Protocol::sendMessage(int socket, int index) {
-    cout << "message: " << messages[index] << endl;
+    cout << "message sent: " << messages[index] << endl;
     vector<BYTE> message = messages[index].getMessage();
     unsigned char* msg = reinterpret_cast<unsigned char*> (message.data());
     int status = send(socket, msg, messages[index].getMessageSize(), 0);
@@ -88,7 +88,7 @@ int Protocol::setData(vector<BYTE> data, int type){
 int Protocol::recvMessage(int sockt){
     BYTE dataRec[MAXSIZE+4];
     int r = recv(sockt, dataRec, MAXSIZE+4, 0);
-    cout << bitset<8>(dataRec[0]) << "|" << bitset<8>(dataRec[1]) << "|" << bitset<8>(dataRec[2]) << "|" << bitset<8>(dataRec[3]) << "|\t";
+    cout << "begin: "<< bitset<8>(dataRec[0]) <<endl;
     cout << "recv response: " << r << endl;
     if(dataRec[0] != BEGIN){
         return NOISE;
@@ -99,7 +99,6 @@ int Protocol::recvMessage(int sockt){
     int dataSize = size < MINSIZE ? MINSIZE : size;
     msg.setBitFields(dataRec[0], dataRec[1], dataRec[2], dataRec[dataSize+3]);
     cout << "Sequence:" << msg.sequence.to_ulong() << "\t";
-
     BYTE msgData[size];
     memcpy(msgData,dataRec+3,size);
     msg.data.insert(msg.data.end(), msgData, msgData+size);
@@ -107,6 +106,7 @@ int Protocol::recvMessage(int sockt){
     messages.push_back(msg);
     cout << "Tipo:" << (int)msg.type.to_ulong() << endl;
 
+    cout <<"message received: "<< msg<<endl;
     if(!msg.checkParity()){
         return INCONSISTENT;
     }
@@ -155,13 +155,6 @@ void Protocol::transmit(int sockt, int window){
                 }
             }
             response.reset();
-        // }else if(status == OK) {
-        //     frame.erase(frame.begin());
-        //     --messagesLeft;
-        // } else if(status == OUTPUT || status == ERROR) {
-        //     frame.erase(frame.begin());
-        //     --messagesLeft;
-        //     cout << "Remoto:\n" << ((status == ERROR)?"ERROR: ":"") << getDataAsString() << endl;
         } else {
             //TODO: treat error
         }
@@ -186,58 +179,36 @@ int Protocol::receive(int sockt, int type, int window, bool dataEndable){
         }
         status = recvMessage(sockt);
         cout << "receive status:" << status << endl;
+        cout << "sequence: "<<messages.back().sequence.to_ulong()<<" next: "<<nextSequence<<endl;
         if(status == NOISE){
             continue;
         } else if(status == type) {
-            if(messages.back().sequence.to_ulong() != nextSequence){
+            if(!messages.empty() && (messages.back().sequence.to_ulong() != nextSequence)){
+                messages.pop_back();
                 response.reset();
                 vector<BYTE> val(1,(BYTE)nextSequence);
                 response.setData(val, NACK);
                 shouldSend = true;
-            } else if(window == WAIT_STOP || ((nextSequence % SLIDING) == 0)) {
-                response.reset();
-                vector<BYTE> val(1,(BYTE)messages.back().sequence.to_ulong());
-                response.setData(val, ACK);
-                nextSequence = (messages.back().sequence.to_ulong()+1)%(MAXSIZE+1);
             } else {
-                //TODO: treat something?
+                if(window == WAIT_STOP || ((nextSequence % SLIDING) == 0)) {
+                    response.reset();
+                    vector<BYTE> val(1,(BYTE)messages.back().sequence.to_ulong());
+                    response.setData(val, ACK);
+                    shouldSend = true;
+                }
+                nextSequence = (messages.back().sequence.to_ulong()+1)%(MAXSIZE+1);
             }
         } else if(status == ERROR) {
-            string str(messages.back().data.begin(), messages.back().data.end());
-            cout << "ERROR: " << getDataAsString() << endl;
+            cout << "ERROR: " << messages.back().getDataAsString() << endl;
             return -1;
         }
-
-        // else if(messages.back().sequence.to_ulong() != nextSequence){
-        //     response.reset();
-        //     vector<BYTE> val(1,(BYTE)nextSequence);
-        //     response.setData(val, NACK);
-        //     shouldSend = true;
-        // }
-        // else if(status == OUTPUT) {
-        //     cout << messages.back().getDataAsString();
-        //
-        //     frame.push_back(messages.size());
-        //
-        //     response.reset();
-        //     vector<BYTE> val(1,(BYTE)messages.back().sequence.to_ulong());
-        //     response.setData(val, ACK);
-        //     nextSequence = (messages.back().sequence.to_ulong()+1)%(MAXSIZE+1);
-        // }else if(status == ERROR){
-        //     string str(messages.back().data.begin(), messages.back().data.end());
-        //     cout << "ERROR: " << getDataAsString() << endl;
-        //     break;
-        // }else if(status == INCONSISTENT){
-        //     response.reset();
-        //     vector<BYTE> val(1,(BYTE)nextSequence);
-        //     response.setData(val, NACK);
-        //     shouldSend = true;
-        // }else{
-        //     //TODO: treat error
-        //     break;
-        // }
-        // shouldSend = shouldSend || (frame.size()%window == 0);
     }while(status != end);
+    if(dataEndable){
+        response.reset();
+        vector<BYTE> val(1,(BYTE)messages.back().sequence.to_ulong());
+        response.setData(val, ACK);
+        response.sendMessages(sockt);
+    }
     return 0;
 }
 
