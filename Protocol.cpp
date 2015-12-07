@@ -2,6 +2,11 @@
 #include "Protocol.h"
 #include "definitions.h"
 
+typedef struct{
+    int index;
+    bool sent;
+}FrameItem;
+
 vector<Message> Protocol::getMessages(){
     return messages;
 }
@@ -108,26 +113,31 @@ int Protocol::recvMessage(int sockt){
 
 void Protocol::transmit(int sockt, int window){
     int status;
-    vector<int> frame;
+    vector<FrameItem> frame;
     int lastFramed = 0;
     int messagesLeft = messages.size();
-    bool shouldSend = true;
     Protocol response;
     while(messagesLeft > 0){
         for(int j=0; j < window; ++j) {
-            frame.push_back(lastFramed++);
-            if(shouldSend) sendMessage(sockt, frame[j]);
+            // FIXME: this will probably brake with many messages
+            FrameItem fi = {.index = lastFramed++, .sent=false};
+            frame.push_back(fi);
+            if(!frame[j].sent){
+                sendMessage(sockt, frame[j].index);
+                frame[j].sent = true;
+            }
         }
         // TODO: timeout
         status = response.recvMessage(sockt);
         cout << "transmit status:" << status << endl;
-        shouldSend = true;
         if(status == NACK){
-            int nackIndex = stoi(response.getMessages().back().getDataAsString());
+            int nackIndex = stoi(getDataAsString());
             for(int j=0; j < window; ++j) {
-                if(frame[j] < nackIndex) {
+                if(frame[j].index < nackIndex) {
                     frame.erase(frame.begin() + j);
                     --messagesLeft;
+                }else if(frame[j].index == nackIndex) {
+                    frame[j].sent = false;
                 }
             }
             response.reset();
@@ -135,7 +145,7 @@ void Protocol::transmit(int sockt, int window){
         }else if(status == ACK){
             int ackIndex = stoi(response.getMessages().back().getDataAsString());
             for(int j=0; j < window; ++j) {
-                if(frame[j] <= ackIndex) {
+                if(frame[j].index <= ackIndex) {
                     frame.erase(frame.begin() + j);
                     --messagesLeft;
                 }
@@ -150,7 +160,6 @@ void Protocol::transmit(int sockt, int window){
         //     cout << "Remoto:\n" << ((status == ERROR)?"ERROR: ":"") << getDataAsString() << endl;
         } else {
             //TODO: treat error
-            shouldSend = false;
         }
     }
     reset();
