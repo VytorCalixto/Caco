@@ -1,5 +1,7 @@
 #!/bin/bash
 
+rm 10.txt 100.txt 1000.txt
+
 for i in {1..10}
 do
     echo -e "$i\n">>10.txt

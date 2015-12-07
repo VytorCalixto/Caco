@@ -154,7 +154,13 @@ void Protocol::transmit(int sockt, int window){
             printf("astoi %i\n", response.getMessages().back().getDataAsString()[0]);
             int ackIndex = response.getMessages().back().getDataAsString()[0];
             for(int j=0; j < frame.size();) {
-                if(frame[j].index <= ackIndex) {
+                cout << "ackIndex: " << ackIndex << "frame[j].index: " << frame[j].index << endl;
+                if(ackIndex == 0) {
+                    if((frame[j].index % (MAXSIZE+1)) == 62 || (frame[j].index % (MAXSIZE+1)) == 63 || (frame[j].index % (MAXSIZE+1)) == 0) {
+                        frame.erase(frame.begin() + j);
+                        --messagesLeft;
+                    } else ++j;
+                } else if((frame[j].index % (MAXSIZE+1)) <= ackIndex) {
                     frame.erase(frame.begin() + j);
                     --messagesLeft;
                 } else ++j;
