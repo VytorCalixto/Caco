@@ -72,10 +72,11 @@ int Protocol::setData(vector<BYTE> data, int type){
         last = data.begin()+i+size+1;
         vector<BYTE> subvector(first, last);
         msg.data = subvector;
+        msg.size = bitset<SIZE_S>(size);
+        msg.calcParity();
         if(size < MINSIZE){
             BYTE zero = 0x00;
             msg.data.insert(msg.data.end(), MINSIZE-size, zero);
-            size = MINSIZE;
         }
         msg.size = bitset<SIZE_S>(size);
         msg.calcParity();
@@ -95,7 +96,8 @@ int Protocol::recvMessage(int sockt){
     Message msg = Message();
     int size = (int)(dataRec[1]>>2);
     cout << "Tamanho:" << size << "\t";
-    msg.setBitFields(dataRec[0], dataRec[1], dataRec[2], dataRec[size+3]);
+    int dataSize = size < MINSIZE ? MINSIZE : size;
+    msg.setBitFields(dataRec[0], dataRec[1], dataRec[2], dataRec[dataSize+3]);
     cout << "Sequence:" << msg.sequence.to_ulong() << "\t";
 
     BYTE msgData[size];

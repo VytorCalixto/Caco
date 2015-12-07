@@ -64,7 +64,7 @@ char* Message::getMessageAsCharPointer(){
 }
 
 int Message::getMessageSize(){
-    return size.to_ulong()+4;
+    return size.to_ulong() < MINSIZE ? MINSIZE+4 : size.to_ulong()+4;
 }
 
 int Message::dataToInt() {

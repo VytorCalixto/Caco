@@ -18,6 +18,9 @@ int main(){
             if(status == CD){
                 cout << "Recebeu CD\n";
                 cd(receiveProtocol.getDataAsString());
+                vector<BYTE> val(1,(BYTE)0);
+                sendProtocol.setData(val, OK);
+                sendProtocol.sendMessage(sockt,0);
             }else if(status == LS){
                 cout << "protocol data: " << receiveProtocol.getDataAsString() << endl;
                 cout << "message data: " << receiveProtocol.getMessages().back().getDataAsString() << endl;
