@@ -53,7 +53,7 @@ bool hasEnoughSpace(int size){
     string path = getWorkingPath();
     statvfs(path.c_str(), &fsData);
     long long freeSpace = fsData.f_bsize * fsData.f_bfree;
-    cout << "freeSpace: " << freeSpace << "fsData: " << fsData.f_bsize << "\t" << fsData.f_bfree     << endl;
+    // cout << "freeSpace: " << freeSpace << "fsData: " << fsData.f_bsize << "\t" << fsData.f_bfree     << endl;
     return (freeSpace > size);
 }
 

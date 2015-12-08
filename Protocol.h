@@ -7,7 +7,6 @@ class Protocol{
 
 private:
     vector<Message> messages;
-    int timeout;
 public:
     bool sendMessages(int socket);
     bool sendMessage(int socket, int index);
@@ -18,7 +17,7 @@ public:
     string getDataAsString();
     int recvMessage(int sockt);
     void addMessage(Message msg);
-    void transmit(int sockt, int window, bool dataEndable);
+    void transmit(int sockt, int window);
     int receive(int sockt, int type, int window, bool dataEndable);
     void reset();
 

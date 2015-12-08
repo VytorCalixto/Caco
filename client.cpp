@@ -38,14 +38,14 @@ int main(){
                 line.replace(line.find("lsr"), string("lsr").length(), "ls");
                 sendProtocol.setData(vector<BYTE>(line.begin(), line.end()), LS);
                 sendProtocol.sendMessage(sockt,0);
-                cout << "Remoto:" << endl;
+                cout << "Remoto:\n";
                 receiveProtocol.receive(sockt, OUTPUT, WAIT_STOP, true);
                 cout << receiveProtocol.getDataAsString() << endl;
             }else if(command == "put"){
                 args = line.substr(pos+1, line.size());
                 if(fexists(args)) {
                     string size = to_string(filesize(args));
-                    cout << "ARQUIVO: " << args << "|" << size << endl;
+                    cout << "ARQUIVO: " << args << "|\tTAMANHO:" << size << endl;
                     sendProtocol.setData(vector<BYTE>(args.begin(), args.end()), PUT);
                     sendProtocol.sendMessage(sockt, 0);
                     int error = receiveProtocol.receive(sockt, OK, WAIT_STOP, false);
@@ -76,7 +76,7 @@ int main(){
                 string s_size = receiveProtocol.getDataAsString();
                 cout << s_size << endl;
                 unsigned int fileSize = stoi(s_size);
-                cout << "Tamanho: " << fileSize << endl;
+                // cout << "Tamanho: " << fileSize << endl;
                 sendProtocol.reset();
                 if(hasEnoughSpace(fileSize)) {
                     sendProtocol.setData(vector<BYTE>(1,(BYTE)0), OK);
@@ -89,7 +89,6 @@ int main(){
                 }
                 receiveProtocol.reset();
                 receiveProtocol.receive(sockt,DATA,SLIDING,true);
-                cout <<"conteudo: "<< receiveProtocol.getDataAsString()<<endl;
                 writeFile(getWorkingPath()+"/"+args,receiveProtocol.getData());
                 sendProtocol.reset();
                 receiveProtocol.reset();
