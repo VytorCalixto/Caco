@@ -55,13 +55,39 @@ int main(){
                     sendProtocol.sendMessage(sockt, 0);
                     error = receiveProtocol.receive(sockt, OK, WAIT_STOP, false);
                     if(error < 0) continue;
-                    sendProtocol.reset();
                     ifstream putFile (args);
-                    stringstream buffer;
-                    buffer << putFile.rdbuf();
-                    string data = buffer.str();
-                    sendProtocol.setData(vector<BYTE>(data.begin(), data.end()), DATA);
-                    sendProtocol.transmit(sockt, SLIDING);
+                    sendProtocol.reset();
+                    sendProtocol.sequence = 0;
+                    size_t totalChunks = stoi(size)/BUFFER;
+                    size_t lastChunkSize = stoi(size)%BUFFER;
+                    (lastChunkSize != 0) ? ++totalChunks : lastChunkSize = BUFFER;
+                    for(size_t chunk = 0; chunk < totalChunks; ++chunk){
+                        bool end = (chunk == (totalChunks - 1));
+                        size_t thisChunkSize = end ? lastChunkSize : BUFFER;
+                        cout <<"chunk:" <<chunk <<"totalChunks: " <<totalChunks << " end: "<<end<<endl;
+
+                        vector<char> data(thisChunkSize);
+                        putFile.read(&data[0], thisChunkSize);
+                        sendProtocol.setData(vector<BYTE>(data.begin(),data.end()), DATA);
+                        int toMod;
+                        if(sendProtocol.getMessages().back().sequence.to_ulong() == 0){
+                            toMod =0;
+                        }else{
+                            toMod = (sendProtocol.getMessages().back().sequence.to_ulong())%SLIDING;
+                        }
+                        cout << "toMod: "<<toMod<<endl;
+                        if(toMod){
+                            vector<char> mod((SLIDING-toMod)*MAXSIZE);
+                            putFile.read(&mod[0], (SLIDING-toMod)*MAXSIZE);
+                            sendProtocol.setData(vector<BYTE>(mod.begin(),mod.end()), DATA);
+                            lastChunkSize-=((SLIDING-toMod)*MAXSIZE);
+                            if(lastChunkSize <=0){
+                                lastChunkSize = BUFFER - lastChunkSize;
+                                --totalChunks;
+                            }
+                        }
+                        sendProtocol.transmit(sockt,SLIDING,end);
+                    }
                 } else {
                     cout << "ERROR: arquivo não existe\n";
                 }
