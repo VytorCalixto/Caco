@@ -1,16 +1,25 @@
 #ifndef __PROTOCOL__
 #define __PROTOCOL__
 #include "definitions.h"
+#include "Message.h"
 
 class Protocol{
 
 private:
-    Message message;
-    vector<char> data;
+    vector<Message> messages;
 public:
-
-    Message getMessage();
-    void setMessage(Message message);
+    bool sendMessages(int socket);
+    bool sendMessage(int socket, int index);
+    vector<Message> getMessages();
+    void setMessages(vector<Message> messages);
+    vector<BYTE> getData();
+    int setData(vector<BYTE> data, int type);
+    string getDataAsString();
+    int recvMessage(int sockt);
+    void addMessage(Message msg);
+    void transmit(int sockt, int window);
+    int receive(int sockt, int type, int window, bool dataEndable);
+    void reset();
 
     Protocol();
 };

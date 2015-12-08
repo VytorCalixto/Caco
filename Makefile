@@ -1,13 +1,15 @@
-CFLAGS= -g -Wall -O2
+CXXFLAGS= -w -g -Wall -O2 -std=c++11
 CC=g++
 
-OBJ=Protocol.o
+OBJ=Protocol.o Message.o
+
+all: cacoclient cacoserver
 
 %.o: %.cpp
-	$(CC) $(CFLAGS) $^ -c -o $@
+	$(CC) $(CXXFLAGS) $^ -c -o $@
 cacoclient: client.cpp $(OBJ)
-	$(CC) $(CFLAGS) $^ -o $@
-# cacoserver: $(OBJ) client.cpp
-# 	$(CC) $(CFLAGS) $^ -o $@
+	$(CC) $(CXXFLAGS) $^ -o $@
+cacoserver: server.cpp $(OBJ)
+	$(CC) $(CXXFLAGS) $^ -o $@
 clean:
 	rm -f *.o caco*
