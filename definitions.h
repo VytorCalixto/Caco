@@ -16,7 +16,7 @@ using namespace std;
 #define MINSIZE 60
 
 //Read buffer size
-#define BUFFER 1024
+#define BUFFER 1008
 
 //Delimiter indicating beginning of a message
 #define BEGIN 0x7E

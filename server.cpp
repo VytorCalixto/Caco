@@ -27,7 +27,7 @@ int main(){
                 string output = ls(receiveProtocol.getMessages().back().getDataAsString());
                 cout << "LS: " << output << endl;
                 sendProtocol.setData(vector<BYTE>(output.begin(), output.end()), OUTPUT);
-                sendProtocol.transmit(sockt, WAIT_STOP);
+                sendProtocol.transmit(sockt, WAIT_STOP,true);
                 cout << "finished transmit" << endl;
             }else if(status == PUT){
                 string fileName = receiveProtocol.getDataAsString();
@@ -54,20 +54,47 @@ int main(){
 
             }else if(status == GET){
                 string filePath = getWorkingPath()+"/"+receiveProtocol.getDataAsString();
+                cout << "ARQUIVO: " << filePath << endl;
                 if(fexists(filePath)) {
                     string size = to_string(filesize(filePath));
-                    cout << "ARQUIVO: " << filePath << "|" << size << endl;
+                    cout <<"file size: "<< size <<endl;
                     sendProtocol.setData(vector<BYTE>(size.begin(), size.end()), SIZE);
                     sendProtocol.sendMessage(sockt, 0);
                     int error = receiveProtocol.receive(sockt, OK, WAIT_STOP, false);
                     if(error < 0) continue;
-                    sendProtocol.reset();
                     ifstream putFile (filePath);
-                    stringstream buffer;
-                    buffer << putFile.rdbuf();
-                    string data = buffer.str();
-                    sendProtocol.setData(vector<BYTE>(data.begin(), data.end()), DATA);
-                    sendProtocol.transmit(sockt, SLIDING);
+                    sendProtocol.reset();
+                    sendProtocol.sequence = 0;
+                    size_t totalChunks = stoi(size)/BUFFER;
+                    size_t lastChunkSize = stoi(size)%BUFFER;
+                    (lastChunkSize != 0) ? ++totalChunks : lastChunkSize = BUFFER;
+                    for(size_t chunk = 0; chunk < totalChunks; ++chunk){
+                        bool end = (chunk == (totalChunks - 1));
+                        size_t thisChunkSize = end ? lastChunkSize : BUFFER;
+                        cout <<"chunk:" <<chunk <<"totalChunks: " <<totalChunks << " end: "<<end<<endl;
+
+                        vector<char> data(thisChunkSize);
+                        putFile.read(&data[0], thisChunkSize);
+                        sendProtocol.setData(vector<BYTE>(data.begin(),data.end()), DATA);
+                        int toMod;
+                        if(sendProtocol.getMessages().back().sequence.to_ulong() == 0){
+                            toMod =0;
+                        }else{
+                            toMod = (sendProtocol.getMessages().back().sequence.to_ulong())%SLIDING;
+                        }
+                        cout << "toMod: "<<toMod<<endl;
+                        if(toMod){
+                            vector<char> mod((SLIDING-toMod)*MAXSIZE);
+                            putFile.read(&mod[0], (SLIDING-toMod)*MAXSIZE);
+                            sendProtocol.setData(vector<BYTE>(mod.begin(),mod.end()), DATA);
+                            lastChunkSize-=((SLIDING-toMod)*MAXSIZE);
+                            if(lastChunkSize <=0){
+                                lastChunkSize = BUFFER - lastChunkSize;
+                                --totalChunks;
+                            }
+                        }
+                        sendProtocol.transmit(sockt,SLIDING,end);
+                    }
                 } else {
                     sendProtocol.setData(vector<BYTE>(1,(BYTE)DIR_ERR), ERROR);
                     sendProtocol.sendMessage(sockt,0);
@@ -86,7 +113,9 @@ int main(){
             cout << "Erro:" <<strException <<endl;
         }
         sendProtocol.reset();
+        sendProtocol.sequence = 0;
         receiveProtocol.reset();
+        receiveProtocol.sequence = 0;
     }
     return 0;
 }
