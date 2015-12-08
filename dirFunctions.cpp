@@ -59,7 +59,7 @@ bool hasEnoughSpace(int size){
 
 
 void writeFile(string path, vector<BYTE>data){
-    cout << "path: "<< path<<endl;
+    // cout << "path: "<< path<<endl;
     string strData(data.begin(), data.end());
     ofstream file(path);
     if (file.is_open()){

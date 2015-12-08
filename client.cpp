@@ -45,7 +45,7 @@ int main(){
                 args = line.substr(pos+1, line.size());
                 if(fexists(args)) {
                     string size = to_string(filesize(args));
-                    cout << "ARQUIVO: " << args << "|\tTAMANHO:" << size << endl;
+                    // cout << "ARQUIVO: " << args << "|\tTAMANHO:" << size << endl;
                     sendProtocol.setData(vector<BYTE>(args.begin(), args.end()), PUT);
                     sendProtocol.sendMessage(sockt, 0);
                     int error = receiveProtocol.receive(sockt, OK, WAIT_STOP, false);

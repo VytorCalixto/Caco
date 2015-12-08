@@ -14,6 +14,16 @@ double timestamp(void) {
     return ((double)(tp.tv_sec + tp.tv_usec/1000000.0));
 }
 
+void printErrors(char error){
+	if(error == DIR_ERR){
+		cout << "Arquivo ou diretório inexistente."<<endl;
+	}else if(error == PERM_ERR){
+		cout << "Você não tem permissão."<<endl;
+	}else if(error == SPACE_ERR){
+		cout << "Espaço insuficiente no disco."<<endl;
+	}
+}
+
 vector<Message> Protocol::getMessages(){
     return messages;
 }
@@ -221,7 +231,8 @@ int Protocol::receive(int sockt, int type, int window, bool dataEndable){
                 nextSequence = (messages.back().sequence.to_ulong()+1)%(MAXSIZE+1);
             }
         } else if(status == ERROR) {
-            cout << "ERROR: " << messages.back().getDataAsString() << endl;
+            cout << "ERROR: ";
+            printErrors(messages.back().data[0]);
             return -1;
         }
     }while(status != end);
